@@ -14,7 +14,11 @@
 #include <audio_hal.h>
 #include <filter_resample.h>
 #include <i2s_stream.h>
-#include <raw_stream.h>
+#include <raw_stream.h>#include <audio_pipeline.h>
+#include <audio_element.h>
+#include <audio_event_iface.h>
+#include <http_stream.h>
+#include <filter_resample.h>
 
 #ifdef USE_ESP_ADF_BOARD
 #include <board.h>
@@ -186,7 +190,7 @@ void ESPADFSpeaker::play_raw(const uint8_t *data, size_t length) {
     size_t to_send_length = std::min(remaining, BUFFER_SIZE);
     event.len = to_send_length;
     memcpy(event.data, data + index, to_send_length);
-    if (xQueueSend(this->buffer_queue_.handle, &event, 0) != pdTRUE) {
+    if (xQueueSend(this->buffer_queue_, &event, 0) != pdTRUE) {
       ESP_LOGE(TAG, "Queue full, cannot send more data");
       return;
     }
