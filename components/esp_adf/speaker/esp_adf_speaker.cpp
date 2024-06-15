@@ -196,13 +196,48 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         .crt_bundle_attach = NULL,
     };
 
-    // Set the URL for the HTTP stream
+    this->http_stream_reader_ = http_stream_init(&http_cfg);
+    if (this->http_stream_reader_ == NULL) {
+        ESP_LOGE(TAG, "Failed to initialize HTTP stream reader");
+        return;
+    }
     audio_element_set_uri(this->http_stream_reader_, url.c_str());
 
-    // Run the pipeline for the HTTP stream
-    audio_pipeline_run(this->pipeline_);
+    // Initialize a new audio pipeline for the URL stream
+    audio_pipeline_cfg_t pipeline_cfg = {
+        .rb_size = 8 * 1024,
+    };
+    this->pipeline_ = audio_pipeline_init(&pipeline_cfg);
+    if (this->pipeline_ == NULL) {
+        ESP_LOGE(TAG, "Failed to initialize audio pipeline");
+        return;
+    }
 
-    ESP_LOGI("ESPADFSpeaker", "Playing URL: %s", url.c_str());
+    // Register the pipeline elements
+    if (audio_pipeline_register(this->pipeline_, this->http_stream_reader_, "http") != ESP_OK ||
+        audio_pipeline_register(this->pipeline_, this->i2s_stream_writer_, "i2s") != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to register pipeline elements");
+        audio_pipeline_deinit(this->pipeline_);
+        this->pipeline_ = nullptr;
+        return;
+    }
+
+    const char *link_tag[2] = {"http", "i2s"};
+    if (audio_pipeline_link(this->pipeline_, &link_tag[0], 2) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to link pipeline elements");
+        audio_pipeline_deinit(this->pipeline_);
+        this->pipeline_ = nullptr;
+        return;
+    }
+
+    // Start the audio pipeline
+    ESP_LOGI(TAG, "Starting new audio pipeline for URL");
+    if (audio_pipeline_run(this->pipeline_) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to run audio pipeline");
+        audio_pipeline_deinit(this->pipeline_);
+        this->pipeline_ = nullptr;
+        return;
+    }
 }
 
 void ESPADFSpeaker::start() { this->state_ = speaker::STATE_STARTING; }
