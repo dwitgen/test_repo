@@ -4,8 +4,7 @@ namespace esphome {
 namespace esp_adf_media_player {
 
 void ESPADFMediaPlayer::setup() {
-  // Initialize the media player and get a reference to the speaker component
-  this->speaker_ = new esphome::esp_adf_speaker::ESPADFSpeaker();
+  this->speaker_ = new esphome::esp_adf::ESPADFSpeaker();
   this->speaker_->setup();
 }
 
@@ -22,27 +21,4 @@ MediaPlayerTraits ESPADFMediaPlayer::get_traits() {
 }
 
 void ESPADFMediaPlayer::control(const MediaPlayerCall &call) {
-  if (call.get_volume().has_value()) {
-    float volume = *call.get_volume();
-    this->speaker_->set_volume(volume);
-  }
-
-  if (call.get_media_url().has_value()) {
-    std::string url = *call.get_media_url();
-    this->speaker_->play(url);
-  }
-
-  if (call.get_command().has_value()) {
-    MediaPlayerCallCommand cmd = *call.get_command();
-    if (cmd == MediaPlayerCallCommand::MEDIA_PLAYER_CALL_COMMAND_PLAY) {
-      this->speaker_->play("");
-    } else if (cmd == MediaPlayerCallCommand::MEDIA_PLAYER_CALL_COMMAND_PAUSE) {
-      this->speaker_->pause();
-    } else if (cmd == MediaPlayerCallCommand::MEDIA_PLAYER_CALL_COMMAND_STOP) {
-      this->speaker_->stop();
-    }
-  }
-}
-
-}  // namespace esp_adf_media_player
-}  // namespace esphome
+  if (call.get_volume().has_value
