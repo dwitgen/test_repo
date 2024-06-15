@@ -213,57 +213,67 @@ void ESPADFSpeaker::player_task(void *params) {
   };
   audio_element_handle_t i2s_stream_writer = i2s_stream_init(&i2s_cfg);
 
-  rsp_filter_cfg_t rsp_cfg = {
-      .src_rate = 16000,
-      .src_ch = 2,
-      .dest_rate = 16000,
-      .dest_bits = 16,
-      .dest_ch = 1,
-      .src_bits = 16,
-      .mode = RESAMPLE_DECODE_MODE,
-      .max_indata_bytes = RSP_FILTER_BUFFER_BYTE,
-      .out_len_bytes = RSP_FILTER_BUFFER_BYTE,
-      .type = ESP_RESAMPLE_TYPE_AUTO,
-      .complexity = 5,
-      .down_ch_idx = 0,
-      .prefer_flag = ESP_RSP_PREFER_TYPE_SPEED,
-      .out_rb_size = RSP_FILTER_RINGBUFFER_SIZE,
-      .task_stack = RSP_FILTER_TASK_STACK,
-      .task_core = RSP_FILTER_TASK_CORE,
-      .task_prio = RSP_FILTER_TASK_PRIO,
-      .stack_in_ext = true,
-  };
-  audio_element_handle_t filter = rsp_filter_init(&rsp_cfg);
+  // Determine if HTTP stream or raw stream
+    if (this_speaker->is_http_stream_) {
+        // HTTP Stream Configuration
+        http_stream_cfg_t http_cfg = HTTP_STREAM_CFG_DEFAULT();
+        http_cfg.type = AUDIO_STREAM_READER;
+        audio_element_handle_t http_stream_reader = http_stream_init(&http_cfg);
 
-  raw_stream_cfg_t raw_cfg = {
-      .type = AUDIO_STREAM_WRITER,
-      .out_rb_size = 8 * 1024,
-  };
-  audio_element_handle_t raw_write = raw_stream_init(&raw_cfg);
+        rsp_filter_cfg_t rsp_cfg = {
+            .src_rate = 44100,
+            .src_ch = 2,
+            .dest_rate = 16000,
+            .dest_bits = 16,
+            .dest_ch = 1,
+            .src_bits = 16,
+            .mode = RESAMPLE_DECODE_MODE,
+            .max_indata_bytes = RSP_FILTER_BUFFER_BYTE,
+            .out_len_bytes = RSP_FILTER_BUFFER_BYTE,
+            .type = ESP_RESAMPLE_TYPE_AUTO,
+            .complexity = 2,
+            .down_ch_idx = 0,
+            .prefer_flag = ESP_RSP_PREFER_TYPE_SPEED,
+            .out_rb_size = RSP_FILTER_RINGBUFFER_SIZE,
+            .task_stack = RSP_FILTER_TASK_STACK,
+            .task_core = RSP_FILTER_TASK_CORE,
+            .task_prio = RSP_FILTER_TASK_PRIO,
+            .stack_in_ext = true,
+        };
+        audio_element_handle_t filter = rsp_filter_init(&rsp_cfg);
 
-  // Configure and initialize http stream
-  http_stream_cfg_t http_cfg = HTTP_STREAM_CFG_DEFAULT();
-  http_cfg.type = AUDIO_STREAM_READER;
-  audio_element_handle_t http_stream_reader = http_stream_init(&http_cfg);
+        audio_pipeline_handle_t pipeline = audio_pipeline_init(&pipeline_cfg);
+        audio_pipeline_register(pipeline, http_stream_reader, "http");
+        audio_pipeline_register(pipeline, filter, "filter");
+        audio_pipeline_register(pipeline, i2s_stream_writer, "i2s");
 
-  // Register pipeline elements
-  audio_pipeline_register(pipeline, http_stream_reader, "http");
-  audio_pipeline_register(pipeline, raw_write, "raw");
-  audio_pipeline_register(pipeline, filter, "filter");
-  audio_pipeline_register(pipeline, i2s_stream_writer, "i2s");
-  
+        const char *link_tag_http[3] = {"http", "filter", "i2s"};
+        audio_pipeline_link(pipeline, &link_tag_http[0], 3);
 
-  // Contrust link_tag with pipeline elements
-  const char *link_tag[4] = {
-    "http",
-    "raw",
-    "filter",
-    "i2s",
-  };
-  // Link the elements in the pipeline
-  audio_pipeline_link(pipeline, &link_tag[0], 4);
-  // Run the pipeline
-  audio_pipeline_run(pipeline);
+        audio_pipeline_run(pipeline);
+
+        // Set the pipeline handle to class member for later use
+        this_speaker->pipeline_ = pipeline;
+    } else {
+        // Raw Stream Configuration
+        raw_stream_cfg_t raw_cfg = {
+            .type = AUDIO_STREAM_WRITER,
+            .out_rb_size = 8 * 1024,
+        };
+        audio_element_handle_t raw_write = raw_stream_init(&raw_cfg);
+
+        audio_pipeline_handle_t pipeline = audio_pipeline_init(&pipeline_cfg);
+        audio_pipeline_register(pipeline, raw_write, "raw");
+        audio_pipeline_register(pipeline, i2s_stream_writer, "i2s");
+
+        const char *link_tag_raw[2] = {"raw", "i2s"};
+        audio_pipeline_link(pipeline, &link_tag_raw[0], 2);
+
+        audio_pipeline_run(pipeline);
+
+        // Set the pipeline handle to class member for later use
+        this_speaker->pipeline_ = pipeline;
+    }
 
   DataEvent data_event;
 
