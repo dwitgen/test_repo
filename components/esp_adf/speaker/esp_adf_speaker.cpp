@@ -164,6 +164,8 @@ void ESPADFSpeaker::handle_mode_button() {
     this->play_url("http://streaming.tdiradio.com:8000/house.mp3");
 }
 
+#include <http_stream.h>
+
 void ESPADFSpeaker::play_url(const std::string &url) {
   ESP_LOGI(TAG, "Attempting to play URL: %s", url.c_str());
 
@@ -194,10 +196,9 @@ void ESPADFSpeaker::play_url(const std::string &url) {
       .task_core = HTTP_STREAM_TASK_CORE,
       .out_rb_size = HTTP_STREAM_RINGBUFFER_SIZE,
       .event_handle = nullptr,
-      .event_ctx = nullptr,
   };
   this->http_stream_reader_ = http_stream_init(&http_cfg);
-  http_stream_set_url(this->http_stream_reader_, url.c_str());
+  audio_element_set_uri(this->http_stream_reader_, url.c_str());
 
   // Register the pipeline elements
   audio_pipeline_register(this->pipeline_, this->http_stream_reader_, "http");
