@@ -204,6 +204,109 @@ void ESPADFSpeaker::play_raw(const uint8_t *data, size_t length) {
   }
 }
 
+void ESPADFSpeaker::pause() {
+  ESP_LOGI(TAG, "Pausing playback");
+  // Implement pause functionality using ESP-ADF
+  audio_pipeline_pause(this->pipeline_);
+}
+
+void ESPADFSpeaker::stop() {
+  if (this->state_ == speaker::STATE_STOPPED)
+    return;
+  if (this->state_ == speaker::STATE_STARTING) {
+    this->state_ = speaker::STATE_STOPPED;
+    return;
+  }
+  this->state_ = speaker::STATE_STOPPING;
+  DataEvent data;
+  data.stop = true;
+  //gpio_set_level(PA_ENABLE_GPIO, 0);  // Disable PA
+  xQueueSendToFront(this->buffer_queue_, &data, portMAX_DELAY);
+}
+
+void ESPADFSpeaker::watch_() {
+  TaskEvent event;
+  if (xQueueReceive(this->event_queue_, &event, 0) == pdTRUE) {
+    switch (event.type) {
+      case TaskEventType::STARTING:
+      case TaskEventType::STOPPING:
+        break;
+      case TaskEventType::STARTED:
+        this->state_ = speaker::STATE_RUNNING;
+        break;
+      case TaskEventType::RUNNING:
+        this->status_clear_warning();
+        break;
+      case TaskEventType::STOPPED:
+        this->parent_->unlock();
+        this->state_ = speaker::STATE_STOPPED;
+        vTaskDelete(this->player_task_handle_);
+        this->player_task_handle_ = nullptr;
+        break;
+      case TaskEventType::WARNING:
+        ESP_LOGW(TAG, "Error writing to pipeline: %s", esp_err_to_name(event.err));
+        this->status_set_warning();
+        break;
+    }
+  }
+}
+
+void ESPADFSpeaker::loop() {
+  this->watch_();
+  switch (this->state_) {
+    case speaker::STATE_STARTING:
+      this->start_();
+      break;
+    case speaker::STATE_RUNNING:
+    case speaker::STATE_STOPPING:
+    case speaker::STATE_STOPPED:
+      break;
+  }
+   // Read ADC value for button control
+    int adc_value = adc1_get_raw((adc1_channel_t)INPUT_BUTOP_ID);
+    if (adc_value < 0) {
+        ESP_LOGE(TAG, "ADC read error");
+        return;
+    }
+
+    //ESP_LOGD(TAG, "ADC value: %d", adc_value);
+    
+    // Determine button press based on ADC value
+    if (adc_value >= VOL_UP_THRESHOLD_LOW && adc_value <= VOL_UP_THRESHOLD_HIGH) {
+        ESP_LOGI(TAG, "Volume up detected");
+        this->volume_up();
+    } else if (adc_value >= VOL_DOWN_THRESHOLD_LOW && adc_value <= VOL_DOWN_THRESHOLD_HIGH) {
+        ESP_LOGI(TAG, "Volume down detected");
+        this->volume_down();
+    }
+}
+
+size_t ESPADFSpeaker::play(const uint8_t *data, size_t length) {
+  if (this->is_failed()) {
+    ESP_LOGE(TAG, "Failed to play audio, speaker is in failed state.");
+    return 0;
+  }
+  if (this->state_ != speaker::STATE_RUNNING && this->state_ != speaker::STATE_STARTING) {
+    this->start();
+  }
+  size_t remaining = length;
+  size_t index = 0;
+  while (remaining > 0) {
+    DataEvent event;
+    event.stop = false;
+    size_t to_send_length = std::min(remaining, BUFFER_SIZE);
+    event.len = to_send_length;
+    memcpy(event.data, data + index, to_send_length);
+    if (xQueueSend(this->buffer_queue_, &event, 0) != pdTRUE) {
+      return index;  // Queue full
+    }
+    remaining -= to_send_length;
+    index += to_send_length;
+  }
+  return index;
+}
+
+bool ESPADFSpeaker::has_buffered_data() const { return uxQueueMessagesWaiting(this->buffer_queue_) > 0; }
 
 void ESPADFSpeaker::player_task(void *params) {
   ESPADFSpeaker *this_speaker = (ESPADFSpeaker *) params;
@@ -384,110 +487,6 @@ void ESPADFSpeaker::player_task(void *params) {
     delay(10);
   }
 }
-void ESPADFSpeaker::pause() {
-  ESP_LOGI(TAG, "Pausing playback");
-  // Implement pause functionality using ESP-ADF
-  audio_pipeline_pause(this->pipeline_);
-}
-
-
-void ESPADFSpeaker::stop() {
-  if (this->state_ == speaker::STATE_STOPPED)
-    return;
-  if (this->state_ == speaker::STATE_STARTING) {
-    this->state_ = speaker::STATE_STOPPED;
-    return;
-  }
-  this->state_ = speaker::STATE_STOPPING;
-  DataEvent data;
-  data.stop = true;
-  //gpio_set_level(PA_ENABLE_GPIO, 0);  // Disable PA
-  xQueueSendToFront(this->buffer_queue_, &data, portMAX_DELAY);
-}
-
-void ESPADFSpeaker::watch_() {
-  TaskEvent event;
-  if (xQueueReceive(this->event_queue_, &event, 0) == pdTRUE) {
-    switch (event.type) {
-      case TaskEventType::STARTING:
-      case TaskEventType::STOPPING:
-        break;
-      case TaskEventType::STARTED:
-        this->state_ = speaker::STATE_RUNNING;
-        break;
-      case TaskEventType::RUNNING:
-        this->status_clear_warning();
-        break;
-      case TaskEventType::STOPPED:
-        this->parent_->unlock();
-        this->state_ = speaker::STATE_STOPPED;
-        vTaskDelete(this->player_task_handle_);
-        this->player_task_handle_ = nullptr;
-        break;
-      case TaskEventType::WARNING:
-        ESP_LOGW(TAG, "Error writing to pipeline: %s", esp_err_to_name(event.err));
-        this->status_set_warning();
-        break;
-    }
-  }
-}
-
-void ESPADFSpeaker::loop() {
-  this->watch_();
-  switch (this->state_) {
-    case speaker::STATE_STARTING:
-      this->start_();
-      break;
-    case speaker::STATE_RUNNING:
-    case speaker::STATE_STOPPING:
-    case speaker::STATE_STOPPED:
-      break;
-  }
-   // Read ADC value for button control
-    int adc_value = adc1_get_raw((adc1_channel_t)INPUT_BUTOP_ID);
-    if (adc_value < 0) {
-        ESP_LOGE(TAG, "ADC read error");
-        return;
-    }
-
-    //ESP_LOGD(TAG, "ADC value: %d", adc_value);
-    
-    // Determine button press based on ADC value
-    if (adc_value >= VOL_UP_THRESHOLD_LOW && adc_value <= VOL_UP_THRESHOLD_HIGH) {
-        ESP_LOGI(TAG, "Volume up detected");
-        this->volume_up();
-    } else if (adc_value >= VOL_DOWN_THRESHOLD_LOW && adc_value <= VOL_DOWN_THRESHOLD_HIGH) {
-        ESP_LOGI(TAG, "Volume down detected");
-        this->volume_down();
-    }
-}
-
-size_t ESPADFSpeaker::play(const uint8_t *data, size_t length) {
-  if (this->is_failed()) {
-    ESP_LOGE(TAG, "Failed to play audio, speaker is in failed state.");
-    return 0;
-  }
-  if (this->state_ != speaker::STATE_RUNNING && this->state_ != speaker::STATE_STARTING) {
-    this->start();
-  }
-  size_t remaining = length;
-  size_t index = 0;
-  while (remaining > 0) {
-    DataEvent event;
-    event.stop = false;
-    size_t to_send_length = std::min(remaining, BUFFER_SIZE);
-    event.len = to_send_length;
-    memcpy(event.data, data + index, to_send_length);
-    if (xQueueSend(this->buffer_queue_, &event, 0) != pdTRUE) {
-      return index;  // Queue full
-    }
-    remaining -= to_send_length;
-    index += to_send_length;
-  }
-  return index;
-}
-
-bool ESPADFSpeaker::has_buffered_data() const { return uxQueueMessagesWaiting(this->buffer_queue_) > 0; }
 
 }  // namespace esp_adf
 }  // namespace esphome
