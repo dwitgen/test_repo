@@ -42,6 +42,9 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
   // Declare a sensor for volume level
   sensor::Sensor *volume_sensor = nullptr;
 
+  // Declare methods for media/http streaming
+  void handle_mode_button();
+
   protected:
   void start_();
   void watch_();
