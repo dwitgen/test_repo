@@ -172,7 +172,7 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         ESP_LOGI(TAG, "Stopping current audio pipeline");
         
         // Check if the pipeline is in a state that can be stopped
-        audio_elemment_state_t state = audio_pipeline_get_state(this->pipeline_);
+        audio_element_state_t state = audio_pipeline_get_state(this->pipeline_);
         ESP_LOGI(TAG, "Current pipeline state: %d", state);
         
         if (state != AEL_STATE_STOPPED && state != AEL_STATE_FINISHED) {
