@@ -167,9 +167,17 @@ void ESPADFSpeaker::handle_mode_button() {
 void ESPADFSpeaker::play_url(const std::string &url) {
     ESP_LOGI(TAG, "Attempting to play URL: %s", url.c_str());
     // Ensure the pipeline is stopped if already running
-    audio_pipeline_stop(this->pipeline_);
-    audio_pipeline_wait_for_stop(this->pipeline_);
-    audio_pipeline_terminate(this->pipeline_);
+    if(this->pipeline_ != nullptr) {
+      ESP_LOGI(TAG, "Stopping current audio pipeline");
+      audio_pipeline_stop(this->pipeline_);
+      audio_pipeline_wait_for_stop(this->pipeline_);
+      audio_pipeline_terminate(this->pipeline_);
+      audio_pipeline_unregister(this->pipeline_, this->i2s_stream_writer_);
+      audio_pipeline_unregister(this->pipeline_, this->filter_);
+      audio_pipeline_unregister(this->pipeline_, this->http_stream_reader_);
+      audio_pipeline_deinit(this->pipeline_);
+      this->pipeline_ = nullptr;
+    }
 
     // Set the URL for the HTTP stream
     audio_element_set_uri(this->http_stream_reader_, url.c_str());
