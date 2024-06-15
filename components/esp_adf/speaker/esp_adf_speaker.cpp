@@ -157,25 +157,8 @@ void ESPADFSpeaker::setup() {
   // Configure ADC for volume control
   adc1_config_width(ADC_WIDTH_BIT);
   adc1_config_channel_atten((adc1_channel_t)but_channel, ADC_ATTEN);
-   
-}
 
-void ESPADFSpeaker::start() { this->state_ = speaker::STATE_STARTING; }
-void ESPADFSpeaker::start_() {
-  if (!this->parent_->try_lock()) {
-    return;  // Waiting for another i2s component to return lock
-  }
-  //gpio_set_level(PA_ENABLE_GPIO, 1);  // Enable PA
-  xTaskCreate(ESPADFSpeaker::player_task, "speaker_task", 8192, (void *) this, 0, &this->player_task_handle_);
-}
-
-void ESPADFSpeaker::player_task(void *params) {
-  ESPADFSpeaker *this_speaker = (ESPADFSpeaker *) params;
-
-  TaskEvent event;
-  event.type = TaskEventType::STARTING;
-  xQueueSend(this_speaker->event_queue_, &event, portMAX_DELAY);
-
+  // Configure and initialize the i2s
   i2s_driver_config_t i2s_config = {
       .mode = (i2s_mode_t) (I2S_MODE_MASTER | I2S_MODE_TX),
       .sample_rate = 16000,
@@ -253,6 +236,24 @@ void ESPADFSpeaker::player_task(void *params) {
       "i2s",
   };
   audio_pipeline_link(pipeline, &link_tag[0], 2);
+   
+}
+
+void ESPADFSpeaker::start() { this->state_ = speaker::STATE_STARTING; }
+void ESPADFSpeaker::start_() {
+  if (!this->parent_->try_lock()) {
+    return;  // Waiting for another i2s component to return lock
+  }
+  //gpio_set_level(PA_ENABLE_GPIO, 1);  // Enable PA
+  xTaskCreate(ESPADFSpeaker::player_task, "speaker_task", 8192, (void *) this, 0, &this->player_task_handle_);
+}
+
+void ESPADFSpeaker::player_task(void *params) {
+  ESPADFSpeaker *this_speaker = (ESPADFSpeaker *) params;
+
+  TaskEvent event;
+  event.type = TaskEventType::STARTING;
+  xQueueSend(this_speaker->event_queue_, &event, portMAX_DELAY);
 
   audio_pipeline_run(pipeline);
 
