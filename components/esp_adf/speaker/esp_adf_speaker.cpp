@@ -15,6 +15,8 @@
 #include <filter_resample.h>
 #include <i2s_stream.h>
 #include <raw_stream.h>
+#include "esp_http_client.h"
+#include "http_stream.h"
 
 #ifdef USE_ESP_ADF_BOARD
 #include <board.h>
@@ -170,7 +172,8 @@ void ESPADFSpeaker::player_task(void *params) {
   TaskEvent event;
   event.type = TaskEventType::STARTING;
   xQueueSend(this_speaker->event_queue_, &event, portMAX_DELAY);
-
+  
+  // Configure and initialize i2s
   i2s_driver_config_t i2s_config = {
       .mode = (i2s_mode_t) (I2S_MODE_MASTER | I2S_MODE_TX),
       .sample_rate = 16000,
@@ -238,17 +241,27 @@ void ESPADFSpeaker::player_task(void *params) {
   };
   audio_element_handle_t raw_write = raw_stream_init(&raw_cfg);
 
+  // Configure and initialize http stream
+  http_stream_cfg_t http_cfg = HTTP_STREAM_CFG_DEFAULT();
+  http_cfg.type = AUDIO_STREAM_READER;
+  audio_element_handle_t http_stream_reader = http_stream_init(&http_cfg);
+
+  // Register pipeline elements
   audio_pipeline_register(pipeline, raw_write, "raw");
   audio_pipeline_register(pipeline, filter, "filter");
   audio_pipeline_register(pipeline, i2s_stream_writer, "i2s");
+  audio_pipeline_register(pipeline, http_stream_reader, "http");
 
-  const char *link_tag[3] = {
-      "raw",
-      // "filter",
-      "i2s",
+  // Contrust link_tag with pipeline elements
+  const char *link_tag[4] = {
+    "http",
+    "raw",
+    "filter",
+    "i2s",
   };
-  audio_pipeline_link(pipeline, &link_tag[0], 2);
-
+  // Link the elements in the pipeline
+  audio_pipeline_link(pipeline, &link_tag[0], 4);
+  // Run the pipeline
   audio_pipeline_run(pipeline);
 
   DataEvent data_event;
