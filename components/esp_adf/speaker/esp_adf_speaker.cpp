@@ -151,10 +151,32 @@ void ESPADFSpeaker::setup() {
   int initial_volume = this->get_current_volume();
   this->set_volume(initial_volume);
   
-  // Configure ADC for volume control
+  // Configure ADC for buttons
   adc1_config_width(ADC_WIDTH_BIT);
   adc1_config_channel_atten((adc1_channel_t)but_channel, ADC_ATTEN);
-   
+
+}
+
+
+void ESPADFSpeaker::handle_mode_button() {
+    // Switch to HTTP stream mode and play the test stream
+    this->is_http_stream_ = true;
+    this->play_url("http://streaming.tdiradio.com:8000/house.mp3");
+}
+
+void ESPADFSpeaker::play_url(const std::string &url) {
+    // Ensure the pipeline is stopped if already running
+    audio_pipeline_stop(this->pipeline_);
+    audio_pipeline_wait_for_stop(this->pipeline_);
+    audio_pipeline_terminate(this->pipeline_);
+
+    // Set the URL for the HTTP stream
+    audio_element_set_uri(this->http_stream_reader_, url.c_str());
+
+    // Run the pipeline for the HTTP stream
+    audio_pipeline_run(this->pipeline_);
+
+    ESP_LOGI("ESPADFSpeaker", "Playing URL: %s", url.c_str());
 }
 
 void ESPADFSpeaker::start() { this->state_ = speaker::STATE_STARTING; }
@@ -444,6 +466,9 @@ void ESPADFSpeaker::loop() {
     } else if (adc_value >= VOL_DOWN_THRESHOLD_LOW && adc_value <= VOL_DOWN_THRESHOLD_HIGH) {
         ESP_LOGI(TAG, "Volume down detected");
         this->volume_down();
+    } else if (adc_value >= MODE_THRESHOLD_LOW && adc_value <= MODE_THRESHOLD_HIGH) {
+        ESP_LOGI(TAG, "Mode button detected");
+        this->handle_mode_button();
     }
 }
 
