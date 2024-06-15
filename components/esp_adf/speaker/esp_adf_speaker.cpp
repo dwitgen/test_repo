@@ -14,7 +14,8 @@
 #include <audio_hal.h>
 #include <filter_resample.h>
 #include <i2s_stream.h>
-#include <raw_stream.h>#include <audio_pipeline.h>
+#include <raw_stream.h>
+#include <audio_pipeline.h>
 #include <audio_element.h>
 #include <audio_event_iface.h>
 #include <http_stream.h>
