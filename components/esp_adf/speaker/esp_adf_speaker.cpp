@@ -15,11 +15,6 @@
 #include <filter_resample.h>
 #include <i2s_stream.h>
 #include <raw_stream.h>
-#include <audio_pipeline.h>
-#include <audio_element.h>
-#include <audio_event_iface.h>
-#include <http_stream.h>
-#include <filter_resample.h>
 
 #ifdef USE_ESP_ADF_BOARD
 #include <board.h>
@@ -157,8 +152,25 @@ void ESPADFSpeaker::setup() {
   // Configure ADC for volume control
   adc1_config_width(ADC_WIDTH_BIT);
   adc1_config_channel_atten((adc1_channel_t)but_channel, ADC_ATTEN);
+   
+}
 
-  // Configure and initialize the i2s
+void ESPADFSpeaker::start() { this->state_ = speaker::STATE_STARTING; }
+void ESPADFSpeaker::start_() {
+  if (!this->parent_->try_lock()) {
+    return;  // Waiting for another i2s component to return lock
+  }
+  //gpio_set_level(PA_ENABLE_GPIO, 1);  // Enable PA
+  xTaskCreate(ESPADFSpeaker::player_task, "speaker_task", 8192, (void *) this, 0, &this->player_task_handle_);
+}
+
+void ESPADFSpeaker::player_task(void *params) {
+  ESPADFSpeaker *this_speaker = (ESPADFSpeaker *) params;
+
+  TaskEvent event;
+  event.type = TaskEventType::STARTING;
+  xQueueSend(this_speaker->event_queue_, &event, portMAX_DELAY);
+
   i2s_driver_config_t i2s_config = {
       .mode = (i2s_mode_t) (I2S_MODE_MASTER | I2S_MODE_TX),
       .sample_rate = 16000,
@@ -178,8 +190,7 @@ void ESPADFSpeaker::setup() {
   audio_pipeline_cfg_t pipeline_cfg = {
       .rb_size = 8 * 1024,
   };
-  this->pipeline_ = audio_pipeline_init(&pipeline_cfg);
-  //audio_pipeline_handle_t pipeline = audio_pipeline_init(&pipeline_cfg);
+  audio_pipeline_handle_t pipeline = audio_pipeline_init(&pipeline_cfg);
 
   i2s_stream_cfg_t i2s_cfg = {
       .type = AUDIO_STREAM_WRITER,
@@ -197,7 +208,7 @@ void ESPADFSpeaker::setup() {
       .need_expand = false,
       .expand_src_bits = I2S_BITS_PER_SAMPLE_16BIT,
   };
-  this->i2s_stream_writer_ = i2s_stream_init(&i2s_cfg);
+  audio_element_handle_t i2s_stream_writer = i2s_stream_init(&i2s_cfg);
 
   rsp_filter_cfg_t rsp_cfg = {
       .src_rate = 16000,
@@ -219,44 +230,26 @@ void ESPADFSpeaker::setup() {
       .task_prio = RSP_FILTER_TASK_PRIO,
       .stack_in_ext = true,
   };
-  this->filter_ = rsp_filter_init(&rsp_cfg);
+  audio_element_handle_t filter = rsp_filter_init(&rsp_cfg);
 
   raw_stream_cfg_t raw_cfg = {
       .type = AUDIO_STREAM_WRITER,
       .out_rb_size = 8 * 1024,
   };
-  this->raw_write_ = raw_stream_init(&raw_cfg);
+  audio_element_handle_t raw_write = raw_stream_init(&raw_cfg);
 
-  audio_pipeline_register(this->pipeline_, this->raw_write_, "raw");
-  audio_pipeline_register(this->pipeline_, this->filter_, "filter");
-  audio_pipeline_register(this->pipeline_, this->i2s_stream_writer_, "i2s");
+  audio_pipeline_register(pipeline, raw_write, "raw");
+  audio_pipeline_register(pipeline, filter, "filter");
+  audio_pipeline_register(pipeline, i2s_stream_writer, "i2s");
 
   const char *link_tag[3] = {
       "raw",
       // "filter",
       "i2s",
   };
-  audio_pipeline_link(this->pipeline_, &link_tag[0], 2);
-   
-}
+  audio_pipeline_link(pipeline, &link_tag[0], 2);
 
-void ESPADFSpeaker::start() { this->state_ = speaker::STATE_STARTING; }
-void ESPADFSpeaker::start_() {
-  if (!this->parent_->try_lock()) {
-    return;  // Waiting for another i2s component to return lock
-  }
-  //gpio_set_level(PA_ENABLE_GPIO, 1);  // Enable PA
-  xTaskCreate(ESPADFSpeaker::player_task, "speaker_task", 8192, (void *) this, 0, &this->player_task_handle_);
-}
-
-void ESPADFSpeaker::player_task(void *params) {
-  ESPADFSpeaker *this_speaker = (ESPADFSpeaker *) params;
-
-  TaskEvent event;
-  event.type = TaskEventType::STARTING;
-  xQueueSend(this_speaker->event_queue_, &event, portMAX_DELAY);
-
-  audio_pipeline_run(this_speaker->pipeline_);
+  audio_pipeline_run(pipeline);
 
   DataEvent data_event;
 
@@ -289,7 +282,7 @@ void ESPADFSpeaker::player_task(void *params) {
       last_received = millis();
 
     while (remaining > 0) {
-      int bytes_written = raw_stream_write(this_speaker->raw_write_, (char *) data_event.data + current, remaining);
+      int bytes_written = raw_stream_write(raw_write, (char *) data_event.data + current, remaining);
       if (bytes_written == ESP_FAIL) {
         event = {.type = TaskEventType::WARNING, .err = ESP_FAIL};
         xQueueSend(this_speaker->event_queue_, &event, 0);
@@ -304,21 +297,21 @@ void ESPADFSpeaker::player_task(void *params) {
     xQueueSend(this_speaker->event_queue_, &event, 0);
   }
 
-  audio_pipeline_stop(this_speaker->pipeline_);
-  audio_pipeline_wait_for_stop(this_speaker->pipeline_);
-  audio_pipeline_terminate(this_speaker->pipeline_);
+  audio_pipeline_stop(pipeline);
+  audio_pipeline_wait_for_stop(pipeline);
+  audio_pipeline_terminate(pipeline);
 
   event.type = TaskEventType::STOPPING;
   xQueueSend(this_speaker->event_queue_, &event, portMAX_DELAY);
 
-  audio_pipeline_unregister(this_speaker->pipeline_, this_speaker->i2s_stream_writer_);
-  audio_pipeline_unregister(this_speaker->pipeline_, this_speaker->filter_);
-  audio_pipeline_unregister(this_speaker->pipeline_, this_speaker->raw_write_);
+  audio_pipeline_unregister(pipeline, i2s_stream_writer);
+  audio_pipeline_unregister(pipeline, filter);
+  audio_pipeline_unregister(pipeline, raw_write);
 
-  audio_pipeline_deinit(this_speaker->pipeline_);
-  audio_element_deinit(this_speaker->i2s_stream_writer_);
-  audio_element_deinit(this_speaker->filter_);
-  audio_element_deinit(this_speaker->raw_write_);
+  audio_pipeline_deinit(pipeline);
+  audio_element_deinit(i2s_stream_writer);
+  audio_element_deinit(filter);
+  audio_element_deinit(raw_write);
 
   event.type = TaskEventType::STOPPED;
   xQueueSend(this_speaker->event_queue_, &event, portMAX_DELAY);
