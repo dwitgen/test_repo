@@ -102,17 +102,13 @@ void ESPADFSpeaker::setup() {
 
   ExternalRAMAllocator<uint8_t> allocator(ExternalRAMAllocator<uint8_t>::ALLOW_FAILURE);
 
-  this->buffer_queue_.storage = allocator.allocate(sizeof(StaticQueue_t) + (BUFFER_COUNT * sizeof(DataEvent)));
-  if (this->buffer_queue_.storage == nullptr) {
-    ESP_LOGE(TAG, "Failed to allocate buffer queue!");
+  // Initialize buffer queue
+  this->buffer_queue_ = xQueueCreate(BUFFER_COUNT, sizeof(DataEvent));
+  if (this->buffer_queue_ == nullptr) {
+    ESP_LOGE(TAG, "Failed to create buffer queue");
     this->mark_failed();
-    return;
+    return; 
   }
-
-  this->buffer_queue_.handle =
-      xQueueCreateStatic(BUFFER_COUNT, sizeof(DataEvent), this->buffer_queue_.storage + sizeof(StaticQueue_t),
-                         (StaticQueue_t *) (this->buffer_queue_.storage));
-
   this->event_queue_ = xQueueCreate(20, sizeof(TaskEvent));
   if (this->event_queue_ == nullptr) {
     ESP_LOGW(TAG, "Could not allocate event queue.");
