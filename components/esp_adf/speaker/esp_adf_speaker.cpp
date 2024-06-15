@@ -277,7 +277,7 @@ void ESPADFSpeaker::player_task(void *params) {
   uint32_t last_received = millis();
 
   while (true) {
-        if (xQueueReceive(this_speaker->buffer_queue_, &data_event, 0) != pdTRUE) {
+        if (xQueueReceive(this_speaker->buffer_queue_handle, &data_event, 0) != pdTRUE) {
             if (millis() - last_received > 500) {
                 // No audio for 500ms, stop
                 break;
@@ -287,7 +287,7 @@ void ESPADFSpeaker::player_task(void *params) {
         }
         if (data_event.stop) {
             // Stop signal from main thread
-            while (xQueueReceive(this_speaker->buffer_queue_, &data_event, 0) == pdTRUE) {
+            while (xQueueReceive(this_speaker->buffer_queue_.handle, &data_event, 0) == pdTRUE) {
                 // Flush queue
             }
             break;
