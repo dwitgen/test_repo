@@ -25,42 +25,41 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
   void setup() override;
   void loop() override;
 
-  void play_url(const std::string &url);
-  void play_raw(const uint8_t *data, size_t length);
-  void pause();
-  void stop();
+  void start() override;
+  void stop() override;
+
+  size_t play(const uint8_t *data, size_t length) override;
+
+  bool has_buffered_data() const override;
+
+  // Declare methods for volume control
   void set_volume(int volume);
-  int get_current_volume();
   void volume_up();
   void volume_down();
-  size_t play(const uint8_t *data, size_t length); 
+  // Declare a method to get the current volume from the device
+  int get_current_volume();
 
- private:
-  static void player_task(void *params);
-  void start();
-  void start_();
-  void stop_();
-  void watch_();
-  bool has_buffered_data() const;
-
-  int volume_ = 50;  // Default volume level
-  QueueHandle_t buffer_queue_;
-  QueueHandle_t event_queue_;
-  TaskHandle_t player_task_handle_ = nullptr;
+  // Declare a sensor for volume level
   sensor::Sensor *volume_sensor = nullptr;
 
-  // Add these member variables for the audio pipeline and elements
-  audio_pipeline_handle_t pipeline_;
-  audio_element_handle_t i2s_stream_writer_;
-  audio_element_handle_t http_stream_reader_;
-  audio_element_handle_t raw_stream_writer_;
-  audio_element_handle_t filter_;
-  audio_element_handle_t raw_write_;
+  protected:
+  void start_();
+  void watch_();
 
-  bool is_playing_url_ = false;
+  static void player_task(void *params);
+
+  TaskHandle_t player_task_handle_{nullptr};
+  struct {
+    QueueHandle_t handle;
+    uint8_t *storage;
+  } buffer_queue_;
+  QueueHandle_t event_queue_;
+  private:
+  int volume_ = 50;  // Default volume level
 };
 
 }  // namespace esp_adf
 }  // namespace esphome
 
 #endif  // USE_ESP_IDF
+
