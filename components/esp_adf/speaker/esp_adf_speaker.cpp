@@ -120,6 +120,66 @@ void ESPADFSpeaker::setup() {
     return;
   }
 
+   // Initialize pipeline elements
+  i2s_stream_cfg_t i2s_cfg = {
+      .type = AUDIO_STREAM_WRITER,
+      .i2s_port = I2S_NUM_0,
+      .use_alc = false,
+      .volume = 0,
+      .out_rb_size = I2S_STREAM_RINGBUFFER_SIZE,
+      .task_stack = I2S_STREAM_TASK_STACK,
+      .task_core = I2S_STREAM_TASK_CORE,
+      .task_prio = I2S_STREAM_TASK_PRIO,
+  };
+  this->i2s_stream_writer_ = i2s_stream_init(&i2s_cfg);
+
+  rsp_filter_cfg_t rsp_cfg = {
+      .src_rate = 16000,
+      .src_ch = 1,
+      .dest_rate = 16000,
+      .dest_bits = 16,
+      .dest_ch = 2,
+      .src_bits = 16,
+      .mode = RESAMPLE_DECODE_MODE,
+      .max_indata_bytes = RSP_FILTER_BUFFER_BYTE,
+      .out_len_bytes = RSP_FILTER_BUFFER_BYTE,
+      .type = ESP_RESAMPLE_TYPE_AUTO,
+      .complexity = 2,
+      .down_ch_idx = 0,
+      .prefer_flag = ESP_RSP_PREFER_TYPE_SPEED,
+      .out_rb_size = RSP_FILTER_RINGBUFFER_SIZE,
+      .task_stack = RSP_FILTER_TASK_STACK,
+      .task_core = RSP_FILTER_TASK_CORE,
+      .task_prio = RSP_FILTER_TASK_PRIO,
+  };
+  this->filter_ = rsp_filter_init(&rsp_cfg);
+
+  raw_stream_cfg_t raw_cfg = {
+      .type = AUDIO_STREAM_WRITER,
+      .out_rb_size = 8 * 1024,
+  };
+  this->raw_stream_writer_ = raw_stream_init(&raw_cfg);
+
+  http_stream_cfg_t http_cfg = HTTP_STREAM_CFG_DEFAULT();
+  http_cfg.type = AUDIO_STREAM_READER;
+  this->http_stream_reader_ = http_stream_init(&http_cfg);
+
+  // Create the pipeline
+  audio_pipeline_cfg_t pipeline_cfg = {
+      .rb_size = 8 * 1024,
+  };
+  this->pipeline_ = audio_pipeline_init(&pipeline_cfg);
+
+  // Register elements
+  audio_pipeline_register(this->pipeline_, this->i2s_stream_writer_, "i2s");
+  audio_pipeline_register(this->pipeline_, this->filter_, "filter");
+  audio_pipeline_register(this->pipeline_, this->raw_stream_writer_, "raw");
+  audio_pipeline_register(this->pipeline_, this->http_stream_reader_, "http");
+
+  // Link elements based on play mode
+  const char *link_tag[3] = {"raw", "filter", "i2s"};
+  audio_pipeline_link(this->pipeline_, &link_tag[0], 3);
+
  // Find the key for the generic volume sensor
   uint32_t volume_sensor_key = 0;
   for (auto *sensor : App.get_sensors()) {
@@ -314,83 +374,6 @@ void ESPADFSpeaker::player_task(void *params) {
   TaskEvent event;
   event.type = TaskEventType::STARTING;
   xQueueSend(this_speaker->event_queue_, &event, portMAX_DELAY);
-
-  // Configure I2S stream writer
-  i2s_driver_config_t i2s_config = {
-      .mode = (i2s_mode_t) (I2S_MODE_MASTER | I2S_MODE_TX),
-      .sample_rate = 16000,
-      .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
-      .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
-      .communication_format = I2S_COMM_FORMAT_STAND_I2S,
-      .intr_alloc_flags = ESP_INTR_FLAG_LEVEL2 | ESP_INTR_FLAG_IRAM,
-      .dma_buf_count = 8,
-      .dma_buf_len = 1024,
-      .use_apll = false,
-      .tx_desc_auto_clear = true,
-      .fixed_mclk = 0,
-      .mclk_multiple = I2S_MCLK_MULTIPLE_256,
-      .bits_per_chan = I2S_BITS_PER_CHAN_DEFAULT,
-  };
-
-  audio_pipeline_cfg_t pipeline_cfg = {
-      .rb_size = 8 * 1024,
-  };
-  this_speaker->pipeline_ = audio_pipeline_init(&pipeline_cfg);
-
-  i2s_stream_cfg_t i2s_cfg = {
-      .type = AUDIO_STREAM_WRITER,
-      .i2s_config = i2s_config,
-      .i2s_port = I2S_NUM_0,
-      .use_alc = false,
-      .volume = 0,
-      .out_rb_size = I2S_STREAM_RINGBUFFER_SIZE,
-      .task_stack = I2S_STREAM_TASK_STACK,
-      .task_core = I2S_STREAM_TASK_CORE,
-      .task_prio = I2S_STREAM_TASK_PRIO,
-      .stack_in_ext = false,
-      .multi_out_num = 0,
-      .uninstall_drv = true,
-      .need_expand = false,
-      .expand_src_bits = I2S_BITS_PER_SAMPLE_16BIT,
-  };
-  this_speaker->i2s_stream_writer_ = i2s_stream_init(&i2s_cfg);
-
-  rsp_filter_cfg_t rsp_cfg = {
-      .src_rate = 16000,
-      .src_ch = 1,
-      .dest_rate = 16000,
-      .dest_bits = 16,
-      .dest_ch = 2,
-      .src_bits = 16,
-      .mode = RESAMPLE_DECODE_MODE,
-      .max_indata_bytes = RSP_FILTER_BUFFER_BYTE,
-      .out_len_bytes = RSP_FILTER_BUFFER_BYTE,
-      .type = ESP_RESAMPLE_TYPE_AUTO,
-      .complexity = 2,
-      .down_ch_idx = 0,
-      .prefer_flag = ESP_RSP_PREFER_TYPE_SPEED,
-      .out_rb_size = RSP_FILTER_RINGBUFFER_SIZE,
-      .task_stack = RSP_FILTER_TASK_STACK,
-      .task_core = RSP_FILTER_TASK_CORE,
-      .task_prio = RSP_FILTER_TASK_PRIO,
-      .stack_in_ext = true,
-  };
-  this_speaker->filter_ = rsp_filter_init(&rsp_cfg);
-
-  raw_stream_cfg_t raw_cfg = {
-      .type = AUDIO_STREAM_WRITER,
-      .out_rb_size = 8 * 1024,
-  };
-  this_speaker->raw_stream_writer_ = raw_stream_init(&raw_cfg);
-
-  http_stream_cfg_t http_cfg = HTTP_STREAM_CFG_DEFAULT();
-  http_cfg.type = AUDIO_STREAM_READER;
-  this_speaker->http_stream_reader_ = http_stream_init(&http_cfg);
-
-  audio_pipeline_register(this_speaker->pipeline_, this_speaker->raw_stream_writer_, "raw");
-  audio_pipeline_register(this_speaker->pipeline_, this_speaker->filter_, "filter");
-  audio_pipeline_register(this_speaker->pipeline_, this_speaker->i2s_stream_writer_, "i2s");
-  audio_pipeline_register(this_speaker->pipeline_, this_speaker->http_stream_reader_, "http");
 
   if (this_speaker->is_playing_url_) {
     const char *link_tag[2] = {"http", "i2s"};
