@@ -211,7 +211,14 @@ void ESPADFSpeaker::player_task(void *params) {
       .need_expand = false,
       .expand_src_bits = I2S_BITS_PER_SAMPLE_16BIT,
   };
-  audio_element_handle_t i2s_stream_writer = i2s_stream_init(&i2s_cfg);
+  this_speaker->i2s_stream_writer_ = i2s_stream_init(&i2s_cfg);
+  if (this_speaker->i2s_stream_writer_ == nullptr) {
+        ESP_LOGE("ESPADFSpeaker", "Failed to initialize I2S stream writer");
+        event.type = TaskEventType::ERROR;
+        xQueueSend(this_speaker->event_queue_, &event, portMAX_DELAY);
+        return;
+    }
+
 
   // Determine if HTTP stream or raw stream
     if (this_speaker->is_http_stream_) {
@@ -219,6 +226,14 @@ void ESPADFSpeaker::player_task(void *params) {
         http_stream_cfg_t http_cfg = HTTP_STREAM_CFG_DEFAULT();
         http_cfg.type = AUDIO_STREAM_READER;
         this_speaker->http_stream_reader_ = http_stream_init(&http_cfg);
+        
+        if (this_speaker->http_stream_reader_ == nullptr) {
+            ESP_LOGE("ESPADFSpeaker", "Failed to initialize HTTP stream reader");
+            event.type = TaskEventType::ERROR;
+            xQueueSend(this_speaker->event_queue_, &event, portMAX_DELAY);
+            return;
+        }
+        
 
         rsp_filter_cfg_t rsp_cfg = {
             .src_rate = 44100,
@@ -242,6 +257,13 @@ void ESPADFSpeaker::player_task(void *params) {
         };
         this_speaker->filter_ = rsp_filter_init(&rsp_cfg);
 
+        if (this_speaker->filter_ == nullptr) {
+            ESP_LOGE("ESPADFSpeaker", "Failed to initialize resample filter");
+            event.type = TaskEventType::ERROR;
+            xQueueSend(this_speaker->event_queue_, &event, portMAX_DELAY);
+            return;
+        }
+      
         this_speaker->pipeline_ = audio_pipeline_init(&pipeline_cfg);
         audio_pipeline_register(this_speaker->pipeline_, this_speaker->http_stream_reader_, "http");
         audio_pipeline_register(this_speaker->pipeline_, this_speaker->filter_, "filter");
@@ -258,6 +280,13 @@ void ESPADFSpeaker::player_task(void *params) {
             .out_rb_size = 8 * 1024,
         };
         this_speaker->raw_write_ = raw_stream_init(&raw_cfg);
+
+        if (this_speaker->raw_write_ == nullptr) {
+            ESP_LOGE("ESPADFSpeaker", "Failed to initialize raw stream writer");
+            event.type = TaskEventType::ERROR;
+            xQueueSend(this_speaker->event_queue_, &event, portMAX_DELAY);
+            return;
+        }
 
         this_speaker->pipeline_ = audio_pipeline_init(&pipeline_cfg);
         audio_pipeline_register(this_speaker->pipeline_, this_speaker->raw_write_, "raw");
