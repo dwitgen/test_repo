@@ -215,7 +215,7 @@ void ESPADFSpeaker::player_task(void *params) {
   if (this_speaker->i2s_stream_writer_ == nullptr) {
         ESP_LOGE("ESPADFSpeaker", "Failed to initialize I2S stream writer");
         event.type = TaskEventType::ERROR;
-        xQueueSend(this_speaker->event_queue_.handle, &event, portMAX_DELAY);
+        xQueueSend(this_speaker->event_queue_, &event, portMAX_DELAY);
         return;
     }
 
@@ -230,7 +230,7 @@ void ESPADFSpeaker::player_task(void *params) {
         if (this_speaker->http_stream_reader_ == nullptr) {
             ESP_LOGE("ESPADFSpeaker", "Failed to initialize HTTP stream reader");
             event.type = TaskEventType::ERROR;
-            xQueueSend(this_speaker->event_queue_.handle, &event, portMAX_DELAY);
+            xQueueSend(this_speaker->event_queue_, &event, portMAX_DELAY);
             return;
         }
         
@@ -260,7 +260,7 @@ void ESPADFSpeaker::player_task(void *params) {
         if (this_speaker->filter_ == nullptr) {
             ESP_LOGE("ESPADFSpeaker", "Failed to initialize resample filter");
             event.type = TaskEventType::ERROR;
-            xQueueSend(this_speaker->event_queue_.handle, &event, portMAX_DELAY);
+            xQueueSend(this_speaker->event_queue_, &event, portMAX_DELAY);
             return;
         }
       
@@ -284,7 +284,7 @@ void ESPADFSpeaker::player_task(void *params) {
         if (this_speaker->raw_write_ == nullptr) {
             ESP_LOGE("ESPADFSpeaker", "Failed to initialize raw stream writer");
             event.type = TaskEventType::ERROR;
-            xQueueSend(this_speaker->event_queue_.handle, &event, portMAX_DELAY);
+            xQueueSend(this_speaker->event_queue_, &event, portMAX_DELAY);
             return;
         }
 
