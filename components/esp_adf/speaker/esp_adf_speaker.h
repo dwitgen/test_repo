@@ -43,9 +43,7 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
   sensor::Sensor *volume_sensor = nullptr;
 
   // Declare methods for media player
-  //void play(const std::string &url);
-  //void pause();
-  //void stop();
+  void play_url(const std::string &url);
 
   protected:
   void start_();
@@ -60,7 +58,10 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
   } buffer_queue_;
   QueueHandle_t event_queue_;
   private:
-  int volume_ = 50;  // Default volume level
+   int volume_ = 50;  // Default volume level
+   audio_pipeline_handle_t pipeline_;
+   audio_element_handle_t i2s_stream_writer_;
+   audio_element_handle_t http_stream_reader_;
 };
 
 }  // namespace esp_adf
