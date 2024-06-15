@@ -17,6 +17,7 @@
 #include <raw_stream.h>
 #include "esp_http_client.h"
 #include "http_stream.h"
+#include "audio_pipeline.h"
 
 #ifdef USE_ESP_ADF_BOARD
 #include <board.h>
