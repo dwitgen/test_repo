@@ -253,14 +253,14 @@ void ESPADFSpeaker::player_task(void *params) {
   audio_pipeline_register(pipeline, http_stream_reader, "http");
 
   // Contrust link_tag with pipeline elements
-  const char *link_tag[4] = {
+  const char *link_tag[3] = {
     "http",
     "raw",
-    "filter",
+    //"filter",
     "i2s",
   };
   // Link the elements in the pipeline
-  audio_pipeline_link(pipeline, &link_tag[0], 4);
+  audio_pipeline_link(pipeline, &link_tag[0], 3);
   // Run the pipeline
   audio_pipeline_run(pipeline);
 
