@@ -42,6 +42,11 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
   // Declare a sensor for volume level
   sensor::Sensor *volume_sensor = nullptr;
 
+  // Declare methods for media player
+  void play(const std::string &url);
+  void pause();
+  void stop();
+
   protected:
   void start_();
   void watch_();
