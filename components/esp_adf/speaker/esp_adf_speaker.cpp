@@ -193,10 +193,10 @@ void ESPADFSpeaker::setup() {
   http_cfg.type = AUDIO_STREAM_READER;
   this->http_stream_reader_ = http_stream_init(&http_cfg);
 
-  audio_pipeline_register(this->pipeline_, this_speaker->raw_stream_writer_, "raw");
-  audio_pipeline_register(this->pipeline_, this_speaker->filter_, "filter");
-  audio_pipeline_register(this->pipeline_, this_speaker->i2s_stream_writer_, "i2s");
-  audio_pipeline_register(this->pipeline_, this_speaker->http_stream_reader_, "http");
+  audio_pipeline_register(this->pipeline_, this->raw_stream_writer_, "raw");
+  audio_pipeline_register(this->pipeline_, this->filter_, "filter");
+  audio_pipeline_register(this->pipeline_, this->i2s_stream_writer_, "i2s");
+  audio_pipeline_register(this->pipeline_, this->http_stream_reader_, "http");
 
   // Link elements based on play mode
   const char *link_tag[3] = {"raw", "filter", "i2s"};
