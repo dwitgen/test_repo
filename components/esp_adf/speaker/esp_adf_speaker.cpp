@@ -310,7 +310,7 @@ void ESPADFSpeaker::player_task(void *params) {
   while (true) {
     if (this_speaker->is_playing_url_) {
       // Handle URL stream
-      if (xQueueReceive(this_speaker->buffer_queue_.handle, &data_event, 0) != pdTRUE) {
+      if (xQueueReceive(this_speaker->buffer_queue_, &data_event, 0) != pdTRUE) {
         if (millis() - last_received > 500) {
           // No audio for 500ms, stop
           break;
@@ -320,7 +320,7 @@ void ESPADFSpeaker::player_task(void *params) {
       }
     } else {
       // Handle raw stream
-      if (xQueueReceive(this_speaker->buffer_queue_.handle, &data_event, 0) != pdTRUE) {
+      if (xQueueReceive(this_speaker->buffer_queue_, &data_event, 0) != pdTRUE) {
         if (millis() - last_received > 500) {
           // No audio for 500ms, stop
           break;
@@ -330,7 +330,7 @@ void ESPADFSpeaker::player_task(void *params) {
       }
       if (data_event.stop) {
         // Stop signal from main thread
-        while (xQueueReceive(this_speaker->buffer_queue_.handle, &data_event, 0) == pdTRUE) {
+        while (xQueueReceive(this_speaker->buffer_queue_, &data_event, 0) == pdTRUE) {
           // Flush queue
         }
         break;
@@ -402,7 +402,7 @@ void ESPADFSpeaker::stop() {
   DataEvent data;
   data.stop = true;
   //gpio_set_level(PA_ENABLE_GPIO, 0);  // Disable PA
-  xQueueSendToFront(this->buffer_queue_.handle, &data, portMAX_DELAY);
+  xQueueSendToFront(this->buffer_queue_, &data, portMAX_DELAY);
 }
 
 void ESPADFSpeaker::watch_() {
@@ -478,7 +478,7 @@ size_t ESPADFSpeaker::play(const uint8_t *data, size_t length) {
     size_t to_send_length = std::min(remaining, BUFFER_SIZE);
     event.len = to_send_length;
     memcpy(event.data, data + index, to_send_length);
-    if (xQueueSend(this->buffer_queue_.handle, &event, 0) != pdTRUE) {
+    if (xQueueSend(this->buffer_queue_, &event, 0) != pdTRUE) {
       return index;  // Queue full
     }
     remaining -= to_send_length;
@@ -487,7 +487,7 @@ size_t ESPADFSpeaker::play(const uint8_t *data, size_t length) {
   return index;
 }
 
-bool ESPADFSpeaker::has_buffered_data() const { return uxQueueMessagesWaiting(this->buffer_queue_.handle) > 0; }
+bool ESPADFSpeaker::has_buffered_data() const { return uxQueueMessagesWaiting(this->buffer_queue_) > 0; }
 
 }  // namespace esp_adf
 }  // namespace esphome
