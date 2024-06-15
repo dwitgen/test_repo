@@ -33,6 +33,7 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
   int get_current_volume();
   void volume_up();
   void volume_down();
+  size_t play(const uint8_t *data, size_t length); 
 
  private:
   static void player_task(void *params);
