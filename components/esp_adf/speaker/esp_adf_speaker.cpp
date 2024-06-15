@@ -276,6 +276,10 @@ void ESPADFSpeaker::player_task(void *params) {
   };
   this_speaker->raw_stream_writer_ = raw_stream_init(&raw_cfg);
 
+  http_stream_cfg_t http_cfg = HTTP_STREAM_CFG_DEFAULT();
+  http_cfg.type = AUDIO_STREAM_READER;
+  this_speaker->http_stream_reader_ = http_stream_init(&http_cfg);
+
   audio_pipeline_register(this_speaker->pipeline_, this_speaker->raw_stream_writer_, "raw");
   audio_pipeline_register(this_speaker->pipeline_, this_speaker->filter_, "filter");
   audio_pipeline_register(this_speaker->pipeline_, this_speaker->i2s_stream_writer_, "i2s");
