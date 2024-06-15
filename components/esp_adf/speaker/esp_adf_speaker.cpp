@@ -178,7 +178,8 @@ void ESPADFSpeaker::setup() {
   audio_pipeline_cfg_t pipeline_cfg = {
       .rb_size = 8 * 1024,
   };
-  audio_pipeline_handle_t pipeline = audio_pipeline_init(&pipeline_cfg);
+  this->pipelone_ = audio_pipeline_init(&pipeline_cfg);
+  //audio_pipeline_handle_t pipeline = audio_pipeline_init(&pipeline_cfg);
 
   i2s_stream_cfg_t i2s_cfg = {
       .type = AUDIO_STREAM_WRITER,
@@ -196,7 +197,7 @@ void ESPADFSpeaker::setup() {
       .need_expand = false,
       .expand_src_bits = I2S_BITS_PER_SAMPLE_16BIT,
   };
-  audio_element_handle_t i2s_stream_writer = i2s_stream_init(&i2s_cfg);
+  this->i2s_stream_writer_ = i2s_stream_init(&i2s_cfg);
 
   rsp_filter_cfg_t rsp_cfg = {
       .src_rate = 16000,
@@ -218,24 +219,24 @@ void ESPADFSpeaker::setup() {
       .task_prio = RSP_FILTER_TASK_PRIO,
       .stack_in_ext = true,
   };
-  audio_element_handle_t filter = rsp_filter_init(&rsp_cfg);
+  this->filter_ = rsp_filter_init(&rsp_cfg);
 
   raw_stream_cfg_t raw_cfg = {
       .type = AUDIO_STREAM_WRITER,
       .out_rb_size = 8 * 1024,
   };
-  audio_element_handle_t raw_write = raw_stream_init(&raw_cfg);
+  this->raw_write_ = raw_stream_init(&raw_cfg);
 
-  audio_pipeline_register(pipeline, raw_write, "raw");
-  audio_pipeline_register(pipeline, filter, "filter");
-  audio_pipeline_register(pipeline, i2s_stream_writer, "i2s");
+  audio_pipeline_register(this->pipeline_, this->raw_write_, "raw");
+  audio_pipeline_register(this->pipeline_, this->filter_, "filter");
+  audio_pipeline_register(this->pipeline_, this->i2s_stream_writer_, "i2s");
 
   const char *link_tag[3] = {
       "raw",
       // "filter",
       "i2s",
   };
-  audio_pipeline_link(pipeline, &link_tag[0], 2);
+  audio_pipeline_link(this->pipeline_, &link_tag[0], 2);
    
 }
 
