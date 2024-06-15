@@ -168,18 +168,12 @@ void ESPADFSpeaker::handle_mode_button() {
 void ESPADFSpeaker::play_url(const std::string &url) {
     ESP_LOGI(TAG, "Attempting to play URL: %s", url.c_str());
     // Ensure the pipeline is stopped if already running
-   if (this->pipeline_ != nullptr) {
+    if (this->pipeline_ != nullptr) {
         ESP_LOGI(TAG, "Stopping current audio pipeline");
-        
-        // Check if the pipeline is in a state that can be stopped
-        audio_element_state_t state = audio_pipeline_get_state(this->pipeline_);
-        ESP_LOGI(TAG, "Current pipeline state: %d", state);
-        
-        if (state != AEL_STATE_STOPPED && state != AEL_STATE_FINISHED) {
-            audio_pipeline_stop(this->pipeline_);
-            audio_pipeline_wait_for_stop(this->pipeline_);
-        }
-        
+
+        // Directly attempt to stop and terminate the pipeline
+        audio_pipeline_stop(this->pipeline_);
+        audio_pipeline_wait_for_stop(this->pipeline_);
         audio_pipeline_terminate(this->pipeline_);
         audio_pipeline_unregister(this->pipeline_, this->i2s_stream_writer_);
         audio_pipeline_unregister(this->pipeline_, this->filter_);
