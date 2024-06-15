@@ -224,7 +224,7 @@ void ESPADFSpeaker::player_task(void *params) {
       .max_indata_bytes = RSP_FILTER_BUFFER_BYTE,
       .out_len_bytes = RSP_FILTER_BUFFER_BYTE,
       .type = ESP_RESAMPLE_TYPE_AUTO,
-      .complexity = 2,
+      .complexity = 5,
       .down_ch_idx = 0,
       .prefer_flag = ESP_RSP_PREFER_TYPE_SPEED,
       .out_rb_size = RSP_FILTER_RINGBUFFER_SIZE,
