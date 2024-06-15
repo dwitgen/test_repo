@@ -277,58 +277,66 @@ void ESPADFSpeaker::player_task(void *params) {
   uint32_t last_received = millis();
 
   while (true) {
-    if (xQueueReceive(this_speaker->buffer_queue_.handle, &data_event, 0) != pdTRUE) {
-      if (millis() - last_received > 500) {
-        // No audio for 500ms, stop
-        break;
-      } else {
-        continue;
-      }
-    }
-    if (data_event.stop) {
-      // Stop signal from main thread
-      while (xQueueReceive(this_speaker->buffer_queue_.handle, &data_event, 0) == pdTRUE) {
-        // Flush queue
-      }
-      break;
-    }
+        if (xQueueReceive(this_speaker->buffer_queue_, &data_event, 0) != pdTRUE) {
+            if (millis() - last_received > 500) {
+                // No audio for 500ms, stop
+                break;
+            } else {
+                continue;
+            }
+        }
+        if (data_event.stop) {
+            // Stop signal from main thread
+            while (xQueueReceive(this_speaker->buffer_queue_, &data_event, 0) == pdTRUE) {
+                // Flush queue
+            }
+            break;
+        }
 
-    size_t remaining = data_event.len;
-    size_t current = 0;
-    if (remaining > 0)
-      last_received = millis();
+        size_t remaining = data_event.len;
+        size_t current = 0;
+        if (remaining > 0)
+            last_received = millis();
 
-    while (remaining > 0) {
-      int bytes_written = raw_stream_write(raw_write, (char *) data_event.data + current, remaining);
-      if (bytes_written == ESP_FAIL) {
-        event = {.type = TaskEventType::WARNING, .err = ESP_FAIL};
+        while (remaining > 0) {
+            int bytes_written = raw_stream_write(this_speaker->raw_write_, (char *) data_event.data + current, remaining);
+            if (bytes_written == ESP_FAIL) {
+                event = {.type = TaskEventType::WARNING, .err = ESP_FAIL};
+                xQueueSend(this_speaker->event_queue_, &event, 0);
+                continue;
+            }
+
+            remaining -= bytes_written;
+            current += bytes_written;
+        }
+
+        event.type = TaskEventType::RUNNING;
         xQueueSend(this_speaker->event_queue_, &event, 0);
-        continue;
-      }
-
-      remaining -= bytes_written;
-      current += bytes_written;
     }
 
-    event.type = TaskEventType::RUNNING;
-    xQueueSend(this_speaker->event_queue_, &event, 0);
-  }
+    audio_pipeline_stop(this_speaker->pipeline_);
+    audio_pipeline_wait_for_stop(this_speaker->pipeline_);
+    audio_pipeline_terminate(this_speaker->pipeline_);
 
-  audio_pipeline_stop(pipeline);
-  audio_pipeline_wait_for_stop(pipeline);
-  audio_pipeline_terminate(pipeline);
+    event.type = TaskEventType::STOPPING;
+    xQueueSend(this_speaker->event_queue_, &event, portMAX_DELAY);
 
-  event.type = TaskEventType::STOPPING;
-  xQueueSend(this_speaker->event_queue_, &event, portMAX_DELAY);
+    audio_pipeline_unregister(this_speaker->pipeline_, this_speaker->i2s_stream_writer_);
+    if (this_speaker->is_http_stream_) {
+        audio_pipeline_unregister(this_speaker->pipeline_, this_speaker->filter_);
+        audio_pipeline_unregister(this_speaker->pipeline_, this_speaker->http_stream_reader_);
+    } else {
+        audio_pipeline_unregister(this_speaker->pipeline_, this_speaker->raw_write_);
+    }
 
-  audio_pipeline_unregister(pipeline, i2s_stream_writer);
-  audio_pipeline_unregister(pipeline, filter);
-  audio_pipeline_unregister(pipeline, raw_write);
-
-  audio_pipeline_deinit(pipeline);
-  audio_element_deinit(i2s_stream_writer);
-  audio_element_deinit(filter);
-  audio_element_deinit(raw_write);
+    audio_pipeline_deinit(this_speaker->pipeline_);
+    audio_element_deinit(this_speaker->i2s_stream_writer_);
+    if (this_speaker->is_http_stream_) {
+        audio_element_deinit(this_speaker->filter_);
+        audio_element_deinit(this_speaker->http_stream_reader_);
+    } else {
+        audio_element_deinit(this_speaker->raw_write_);
+    }
 
   event.type = TaskEventType::STOPPED;
   xQueueSend(this_speaker->event_queue_, &event, portMAX_DELAY);
