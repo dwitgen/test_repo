@@ -256,7 +256,7 @@ void ESPADFSpeaker::player_task(void *params) {
   event.type = TaskEventType::STARTING;
   xQueueSend(this_speaker->event_queue_, &event, portMAX_DELAY);
 
-  audio_pipeline_run(pipeline);
+  audio_pipeline_run(this_speaker->pipeline_);
 
   DataEvent data_event;
 
