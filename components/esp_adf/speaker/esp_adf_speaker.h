@@ -44,6 +44,7 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
 
   // Declare methods for media/http streaming
   void handle_mode_button();
+  void play_url();
 
   protected:
   void start_();
