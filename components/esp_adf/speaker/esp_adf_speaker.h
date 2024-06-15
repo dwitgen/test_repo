@@ -55,6 +55,7 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
   audio_element_handle_t http_stream_reader_;
   audio_element_handle_t raw_stream_writer_;
   audio_element_handle_t filter_;
+  audio_element_handle_t raw_write_;
 
   bool is_playing_url_ = false;
 };
