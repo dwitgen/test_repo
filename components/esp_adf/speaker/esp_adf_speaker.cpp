@@ -141,7 +141,7 @@ void ESPADFSpeaker::setup() {
   audio_pipeline_cfg_t pipeline_cfg = {
       .rb_size = 8 * 1024,
   };
-  this_speaker->pipeline_ = audio_pipeline_init(&pipeline_cfg);
+  this->pipeline_ = audio_pipeline_init(&pipeline_cfg);
 
   i2s_stream_cfg_t i2s_cfg = {
       .type = AUDIO_STREAM_WRITER,
