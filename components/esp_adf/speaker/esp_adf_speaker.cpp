@@ -177,6 +177,8 @@ void ESPADFSpeaker::play_url(const std::string &url) {
       audio_pipeline_unregister(this->pipeline_, this->http_stream_reader_);
       audio_pipeline_deinit(this->pipeline_);
       this->pipeline_ = nullptr;
+    } else {
+        ESP_LOGI(TAG, "No existing audio pipeline to stop");
     }
 
      // Configure HTTP stream
