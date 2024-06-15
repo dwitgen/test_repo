@@ -159,7 +159,7 @@ void ESPADFSpeaker::setup() {
       .need_expand = false,
       .expand_src_bits = I2S_BITS_PER_SAMPLE_16BIT,
   };
-  this_speaker->i2s_stream_writer_ = i2s_stream_init(&i2s_cfg);
+  this->i2s_stream_writer_ = i2s_stream_init(&i2s_cfg);
 
   rsp_filter_cfg_t rsp_cfg = {
       .src_rate = 16000,
@@ -181,22 +181,22 @@ void ESPADFSpeaker::setup() {
       .task_prio = RSP_FILTER_TASK_PRIO,
       .stack_in_ext = true,
   };
-  this_speaker->filter_ = rsp_filter_init(&rsp_cfg);
+  this->filter_ = rsp_filter_init(&rsp_cfg);
 
   raw_stream_cfg_t raw_cfg = {
       .type = AUDIO_STREAM_WRITER,
       .out_rb_size = 8 * 1024,
   };
-  this_speaker->raw_stream_writer_ = raw_stream_init(&raw_cfg);
+  this->raw_stream_writer_ = raw_stream_init(&raw_cfg);
 
   http_stream_cfg_t http_cfg = HTTP_STREAM_CFG_DEFAULT();
   http_cfg.type = AUDIO_STREAM_READER;
-  this_speaker->http_stream_reader_ = http_stream_init(&http_cfg);
+  this->http_stream_reader_ = http_stream_init(&http_cfg);
 
-  audio_pipeline_register(this_speaker->pipeline_, this_speaker->raw_stream_writer_, "raw");
-  audio_pipeline_register(this_speaker->pipeline_, this_speaker->filter_, "filter");
-  audio_pipeline_register(this_speaker->pipeline_, this_speaker->i2s_stream_writer_, "i2s");
-  audio_pipeline_register(this_speaker->pipeline_, this_speaker->http_stream_reader_, "http");
+  audio_pipeline_register(this->pipeline_, this_speaker->raw_stream_writer_, "raw");
+  audio_pipeline_register(this->pipeline_, this_speaker->filter_, "filter");
+  audio_pipeline_register(this->pipeline_, this_speaker->i2s_stream_writer_, "i2s");
+  audio_pipeline_register(this->pipeline_, this_speaker->http_stream_reader_, "http");
 
   // Link elements based on play mode
   const char *link_tag[3] = {"raw", "filter", "i2s"};
