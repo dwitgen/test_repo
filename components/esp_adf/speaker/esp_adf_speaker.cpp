@@ -165,18 +165,44 @@ void ESPADFSpeaker::handle_mode_button() {
 }
 
 void ESPADFSpeaker::play_url(const std::string &url) {
-    // Ensure the pipeline is stopped if already running
+  ESP_LOGI(TAG, "Attempting to play URL: %s", url.c_str());
+
+  // Stop any current audio pipeline
+  if (this->pipeline_ != nullptr) {
+    ESP_LOGI(TAG, "Stopping current audio pipeline");
     audio_pipeline_stop(this->pipeline_);
     audio_pipeline_wait_for_stop(this->pipeline_);
     audio_pipeline_terminate(this->pipeline_);
+    audio_pipeline_unregister(this->pipeline_, this->i2s_stream_writer_);
+    audio_pipeline_unregister(this->pipeline_, this->filter_);
+    audio_pipeline_unregister(this->pipeline_, this->http_stream_reader_);
+    audio_pipeline_deinit(this->pipeline_);
+    this->pipeline_ = nullptr;
+  }
 
-    // Set the URL for the HTTP stream
-    audio_element_set_uri(this->http_stream_reader_, url.c_str());
+  // Initialize a new audio pipeline for the URL stream
+  audio_pipeline_cfg_t pipeline_cfg = {
+      .rb_size = 8 * 1024,
+  };
+  this->pipeline_ = audio_pipeline_init(&pipeline_cfg);
 
-    // Run the pipeline for the HTTP stream
-    audio_pipeline_run(this->pipeline_);
+  // Configure HTTP stream
+  http_stream_cfg_t http_cfg = {
+      .type = AUDIO_STREAM_READER,
+      .url = url.c_str(),
+  };
+  this->http_stream_reader_ = http_stream_init(&http_cfg);
 
-    ESP_LOGI("ESPADFSpeaker", "Playing URL: %s", url.c_str());
+  // Register the pipeline elements
+  audio_pipeline_register(this->pipeline_, this->http_stream_reader_, "http");
+  audio_pipeline_register(this->pipeline_, this->i2s_stream_writer_, "i2s");
+
+  const char *link_tag[2] = {"http", "i2s"};
+  audio_pipeline_link(this->pipeline_, &link_tag[0], 2);
+
+  // Start the audio pipeline
+  ESP_LOGI(TAG, "Starting new audio pipeline for URL");
+  audio_pipeline_run(this->pipeline_);
 }
 
 void ESPADFSpeaker::start() { this->state_ = speaker::STATE_STARTING; }
