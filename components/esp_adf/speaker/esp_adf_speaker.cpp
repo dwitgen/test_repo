@@ -194,7 +194,6 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         .multi_out_num = 0,
         .cert_pem = NULL,
         .crt_bundle_attach = NULL,
-        .user_agent = NULL,
     };
 
     // Set the URL for the HTTP stream
