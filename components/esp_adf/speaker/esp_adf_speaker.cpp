@@ -322,6 +322,48 @@ void ESPADFSpeaker::player_task(void *params) {
   }
 }
 
+void ESPADFSpeaker::play_url(const std::string &url) {
+  ESP_LOGI(TAG, "Playing URL: %s", url.c_str());
+
+  // Create and configure the audio pipeline
+  audio_pipeline_handle_t pipeline;
+  audio_element_handle_t i2s_stream_writer, http_stream_reader;
+
+  audio_pipeline_cfg_t pipeline_cfg = DEFAULT_AUDIO_PIPELINE_CONFIG();
+  pipeline = audio_pipeline_init(&pipeline_cfg);
+  mem_assert(pipeline);
+
+  http_stream_cfg_t http_cfg = HTTP_STREAM_CFG_DEFAULT();
+  http_cfg.type = AUDIO_STREAM_READER;
+  http_stream_reader = http_stream_init(&http_cfg);
+
+  i2s_stream_cfg_t i2s_cfg = I2S_STREAM_CFG_DEFAULT();
+  i2s_cfg.type = AUDIO_STREAM_WRITER;
+  i2s_stream_writer = i2s_stream_init(&i2s_cfg);
+
+  audio_pipeline_register(pipeline, http_stream_reader, "http");
+  audio_pipeline_register(pipeline, i2s_stream_writer, "i2s");
+
+  const char *link_tag[2] = {"http", "i2s"};
+  audio_pipeline_link(pipeline, &link_tag[0], 2);
+
+  audio_element_set_uri(http_stream_reader, url.c_str());
+
+  audio_pipeline_run(pipeline);
+
+  // Store the pipeline and elements as member variables if needed
+  this->pipeline_ = pipeline;
+  this->i2s_stream_writer_ = i2s_stream_writer;
+  this->http_stream_reader_ = http_stream_reader;
+}
+
+void ESPADFSpeaker::pause() {
+  ESP_LOGI(TAG, "Pausing playback");
+  // Implement pause functionality using ESP-ADF
+  audio_pipeline_pause(this->pipeline_);
+}
+
+
 void ESPADFSpeaker::stop() {
   if (this->state_ == speaker::STATE_STOPPED)
     return;
