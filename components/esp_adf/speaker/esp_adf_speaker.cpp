@@ -256,7 +256,7 @@ void ESPADFSpeaker::player_task(void *params) {
   event.type = TaskEventType::STARTING;
   xQueueSend(this_speaker->event_queue_, &event, portMAX_DELAY);
 
-  audio_pipeline_run(pipeline_);
+  audio_pipeline_run(pipeline);
 
   DataEvent data_event;
 
@@ -304,21 +304,21 @@ void ESPADFSpeaker::player_task(void *params) {
     xQueueSend(this_speaker->event_queue_, &event, 0);
   }
 
-  audio_pipeline_stop(pipeline_);
-  audio_pipeline_wait_for_stop(pipeline_);
-  audio_pipeline_terminate(pipeline_);
+  audio_pipeline_stop(pipeline);
+  audio_pipeline_wait_for_stop(pipeline);
+  audio_pipeline_terminate(pipeline);
 
   event.type = TaskEventType::STOPPING;
   xQueueSend(this_speaker->event_queue_, &event, portMAX_DELAY);
 
-  audio_pipeline_unregister(pipeline_, i2s_stream_writer_);
-  audio_pipeline_unregister(pipeline_, filter_);
-  audio_pipeline_unregister(pipeline_, raw_write_);
+  audio_pipeline_unregister(pipeline, i2s_stream_writer);
+  audio_pipeline_unregister(pipeline, filter);
+  audio_pipeline_unregister(pipeline, raw_write);
 
-  audio_pipeline_deinit(pipeline_);
-  audio_element_deinit(i2s_stream_writer_);
-  audio_element_deinit(filter_);
-  audio_element_deinit(raw_write_);
+  audio_pipeline_deinit(pipeline);
+  audio_element_deinit(i2s_stream_writer);
+  audio_element_deinit(filter);
+  audio_element_deinit(raw_write);
 
   event.type = TaskEventType::STOPPED;
   xQueueSend(this_speaker->event_queue_, &event, portMAX_DELAY);
