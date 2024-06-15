@@ -214,7 +214,7 @@ void ESPADFSpeaker::player_task(void *params) {
   audio_element_handle_t i2s_stream_writer = i2s_stream_init(&i2s_cfg);
 
   rsp_filter_cfg_t rsp_cfg = {
-      .src_rate = 44100,
+      .src_rate = 16000,
       .src_ch = 2,
       .dest_rate = 16000,
       .dest_bits = 16,
