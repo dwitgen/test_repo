@@ -179,6 +179,23 @@ void ESPADFSpeaker::play_url(const std::string &url) {
       this->pipeline_ = nullptr;
     }
 
+     // Configure HTTP stream
+    http_stream_cfg_t http_cfg = {
+        .type = AUDIO_STREAM_READER,
+        .task_stack = HTTP_STREAM_TASK_STACK,
+        .task_prio = HTTP_STREAM_TASK_PRIO,
+        .out_rb_size = HTTP_STREAM_RINGBUFFER_SIZE,
+        .task_core = HTTP_STREAM_TASK_CORE,
+        .stack_in_ext = false,
+        .event_handle = NULL,
+        .user_data = NULL,
+        .auto_connect_next_track = false,
+        .enable_playlist_parser = false,
+        .multi_out_num = 0,
+        .cert_pem = NULL,
+        .crt_bundle_attach = NULL,
+    };
+
     // Set the URL for the HTTP stream
     audio_element_set_uri(this->http_stream_reader_, url.c_str());
 
