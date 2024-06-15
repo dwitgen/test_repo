@@ -167,16 +167,24 @@ void ESPADFSpeaker::handle_mode_button() {
 void ESPADFSpeaker::play_url(const std::string &url) {
     ESP_LOGI(TAG, "Attempting to play URL: %s", url.c_str());
     // Ensure the pipeline is stopped if already running
-    if(this->pipeline_ != nullptr) {
-      ESP_LOGI(TAG, "Stopping current audio pipeline");
-      audio_pipeline_stop(this->pipeline_);
-      audio_pipeline_wait_for_stop(this->pipeline_);
-      audio_pipeline_terminate(this->pipeline_);
-      audio_pipeline_unregister(this->pipeline_, this->i2s_stream_writer_);
-      audio_pipeline_unregister(this->pipeline_, this->filter_);
-      audio_pipeline_unregister(this->pipeline_, this->http_stream_reader_);
-      audio_pipeline_deinit(this->pipeline_);
-      this->pipeline_ = nullptr;
+   if (this->pipeline_ != nullptr) {
+        ESP_LOGI(TAG, "Stopping current audio pipeline");
+        
+        // Check if the pipeline is in a state that can be stopped
+        audio_pipeline_state_t state = audio_pipeline_get_state(this->pipeline_);
+        ESP_LOGI(TAG, "Current pipeline state: %d", state);
+        
+        if (state != AUDIO_PIPELINE_STATE_STOPPED && state != AUDIO_PIPELINE_STATE_FINISHED) {
+            audio_pipeline_stop(this->pipeline_);
+            audio_pipeline_wait_for_stop(this->pipeline_);
+        }
+        
+        audio_pipeline_terminate(this->pipeline_);
+        audio_pipeline_unregister(this->pipeline_, this->i2s_stream_writer_);
+        audio_pipeline_unregister(this->pipeline_, this->filter_);
+        audio_pipeline_unregister(this->pipeline_, this->http_stream_reader_);
+        audio_pipeline_deinit(this->pipeline_);
+        this->pipeline_ = nullptr;
     } else {
         ESP_LOGI(TAG, "No existing audio pipeline to stop");
     }
@@ -197,6 +205,8 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         .cert_pem = NULL,
         .crt_bundle_attach = NULL,
     };
+
+    ESP_LOGE(TAG, "Passed Configure HTTP Stream");
 
     this->http_stream_reader_ = http_stream_init(&http_cfg);
     if (this->http_stream_reader_ == NULL) {
