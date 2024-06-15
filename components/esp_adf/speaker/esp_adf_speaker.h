@@ -30,6 +30,10 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
 
   size_t play(const uint8_t *data, size_t length) override;
 
+  audio_pipeline_handle_t pipeline_;
+  audio_element_handle_t i2s_stream_writer_;
+  audio_element_handle_t filter_;
+  audio_element_handle_t raw_write_;
   bool has_buffered_data() const override;
 
   // Declare methods for volume control
