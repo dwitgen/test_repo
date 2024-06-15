@@ -55,7 +55,14 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
   } buffer_queue_;
   QueueHandle_t event_queue_;
   private:
-  int volume_ = 50;  // Default volume level
+   int volume_ = 50;  // Default volume level
+   audio_pipeline_handle_t pipeline_;
+   audio_pipeline_handle_t pipeline_http_;
+   audio_pipeline_handle_t pipeline_raw_;
+   audio_element_handle_t i2s_stream_writer_;
+   audio_element_handle_t filter_;
+   audio_element_handle_t raw_write_;
+   audio_element_handle_t http_stream_reader_;
 };
 
 }  // namespace esp_adf
