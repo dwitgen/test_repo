@@ -218,7 +218,7 @@ void ESPADFSpeaker::player_task(void *params) {
         // HTTP Stream Configuration
         http_stream_cfg_t http_cfg = HTTP_STREAM_CFG_DEFAULT();
         http_cfg.type = AUDIO_STREAM_READER;
-        audio_element_handle_t http_stream_reader = http_stream_init(&http_cfg);
+        this_speaker->http_stream_reader_ = http_stream_init(&http_cfg);
 
         rsp_filter_cfg_t rsp_cfg = {
             .src_rate = 44100,
@@ -240,41 +240,34 @@ void ESPADFSpeaker::player_task(void *params) {
             .task_prio = RSP_FILTER_TASK_PRIO,
             .stack_in_ext = true,
         };
-        audio_element_handle_t filter = rsp_filter_init(&rsp_cfg);
+        this_speaker->filter_ = rsp_filter_init(&rsp_cfg);
 
-        audio_pipeline_handle_t pipeline = audio_pipeline_init(&pipeline_cfg);
-        audio_pipeline_register(pipeline, http_stream_reader, "http");
-        audio_pipeline_register(pipeline, filter, "filter");
-        audio_pipeline_register(pipeline, i2s_stream_writer, "i2s");
+        this_speaker->pipeline_ = audio_pipeline_init(&pipeline_cfg);
+        audio_pipeline_register(this_speaker->pipeline_, this_speaker->http_stream_reader_, "http");
+        audio_pipeline_register(this_speaker->pipeline_, this_speaker->filter_, "filter");
+        audio_pipeline_register(this_speaker->pipeline_, this_speaker->i2s_stream_writer_, "i2s");
 
         const char *link_tag_http[3] = {"http", "filter", "i2s"};
-        audio_pipeline_link(pipeline, &link_tag_http[0], 3);
+        audio_pipeline_link(this_speaker->pipeline_, &link_tag_http[0], 3);
 
-        audio_pipeline_run(pipeline);
-
-        // Set the pipeline handle to class member for later use
-        this_speaker->pipeline_ = pipeline;
+        audio_pipeline_run(this_speaker->pipeline_);
     } else {
         // Raw Stream Configuration
         raw_stream_cfg_t raw_cfg = {
             .type = AUDIO_STREAM_WRITER,
             .out_rb_size = 8 * 1024,
         };
-        audio_element_handle_t raw_write = raw_stream_init(&raw_cfg);
+        this_speaker->raw_write_ = raw_stream_init(&raw_cfg);
 
-        audio_pipeline_handle_t pipeline = audio_pipeline_init(&pipeline_cfg);
-        audio_pipeline_register(pipeline, raw_write, "raw");
-        audio_pipeline_register(pipeline, i2s_stream_writer, "i2s");
+        this_speaker->pipeline_ = audio_pipeline_init(&pipeline_cfg);
+        audio_pipeline_register(this_speaker->pipeline_, this_speaker->raw_write_, "raw");
+        audio_pipeline_register(this_speaker->pipeline_, this_speaker->i2s_stream_writer_, "i2s");
 
         const char *link_tag_raw[2] = {"raw", "i2s"};
-        audio_pipeline_link(pipeline, &link_tag_raw[0], 2);
+        audio_pipeline_link(this_speaker->pipeline_, &link_tag_raw[0], 2);
 
-        audio_pipeline_run(pipeline);
-
-        // Set the pipeline handle to class member for later use
-        this_speaker->pipeline_ = pipeline;
+        audio_pipeline_run(this_speaker->pipeline_);
     }
-
   DataEvent data_event;
 
   event.type = TaskEventType::STARTED;
