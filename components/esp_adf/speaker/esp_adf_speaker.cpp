@@ -351,6 +351,8 @@ void ESPADFSpeaker::play_url(const std::string &url) {
 
 	if (this->state_ != speaker::STATE_RUNNING && this->state_ != speaker::STATE_STARTING) {
       ESP_LOGI(TAG, "State is Not Running");
+			TaskEvent event;
+  		event.type = TaskEventType::RUNNING;
       this->start();
     }
    if (this->state_ == speaker::STATE_RUNNING) {
@@ -359,16 +361,8 @@ void ESPADFSpeaker::play_url(const std::string &url) {
     
     // Start the audio pipeline
     ESP_LOGI(TAG, "Starting new audio pipeline for URL"); 
-    if (audio_pipeline_run(this->pipeline_) == ESP_OK) {
-	    if (this->state_ != speaker::STATE_RUNNING && this->state_ != speaker::STATE_STARTING) {
-	      ESP_LOGI(TAG, "State is Not Running");
-	      this->start();
-	    }
-	   if (this->state_ == speaker::STATE_RUNNING) {
-				ESP_LOGI(TAG, "State is now Running");
-	   }
-    } else {
-        ESP_LOGE(TAG, "Failed to run audio pipeline");
+    if (audio_pipeline_run(this->pipeline_) != ESP_OK) {
+	  	  ESP_LOGE(TAG, "Failed to run audio pipeline");
         audio_pipeline_deinit(this->pipeline_);
         this->pipeline_ = nullptr;
         return;
