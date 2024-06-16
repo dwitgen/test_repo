@@ -65,6 +65,7 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
    int volume_ = 50;  // Default volume level
    bool is_http_stream_;
    audio_pipeline_handle_t pipeline_;
+   audio_element_handle_t i2s_stream_writer_;
    audio_element_handle_t i2s_stream_writer_http_;
    audio_element_handle_t i2s_stream_writer_raw_;
    audio_element_handle_t filter_;
