@@ -218,7 +218,7 @@ void ESPADFSpeaker::play_url(const std::string &url) {
      // Configure HTTP stream
     http_stream_cfg_t http_cfg = {
         .type = AUDIO_STREAM_READER,
-        .out_rb_size = HTTP_STREAM_RINGBUFFER_SIZE,
+        .out_rb_size = 8 * 1024, //HTTP_STREAM_RINGBUFFER_SIZE,
         .task_stack = HTTP_STREAM_TASK_STACK,
         .task_core = HTTP_STREAM_TASK_CORE,
         .task_prio = HTTP_STREAM_TASK_PRIO,
