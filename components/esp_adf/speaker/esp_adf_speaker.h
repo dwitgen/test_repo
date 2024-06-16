@@ -23,8 +23,52 @@ enum ESPADFState : uint8_t {
   STATE_STARTING,
   STATE_RUNNING,
   STATE_STOPPING,
-  STATE_PAUSED,   // Add PAUSED state
-  STATE_PLAYING,  // Add PLAYING state
+  STATE_PAUSED,
+  STATE_PLAYING,
+};
+
+enum class TaskEventType : uint8_t {
+  STARTING = 0,
+  STARTED,
+  RUNNING,
+  STOPPING,
+  STOPPED,
+  PAUSED,
+  PLAYING,
+  WARNING = 255,
+};
+
+struct TaskEvent {
+  TaskEventType type;
+  esp_err_t err;
+};
+
+struct CommandEvent {
+  bool stop;
+};
+
+struct DataEvent {
+  bool stop;
+  size_t len;
+  uint8_t data[1024];
+};
+
+class ESPADF;
+
+class ESPADFPipeline : public Parented<ESPADF> {};
+
+class ESPADF : public Component {
+ public:
+  void setup() override;
+
+  float get_setup_priority() const override;
+
+  void lock() { this->lock_.lock(); }
+  bool try_lock() { return this->lock_.try_lock(); }
+  void unlock() { this->lock_.unlock(); }
+
+ protected:
+  Mutex lock_;
 };
 
 class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Component {
@@ -61,9 +105,8 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
   void handle_mode_button();
   void play_url(const std::string &url); 
   void handle_rec_button();
-  
 
-  protected:
+ protected:
   void start_();
   void watch_();
 
@@ -75,20 +118,21 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
     uint8_t *storage;
   } buffer_queue_;
   QueueHandle_t event_queue_;
-  private:
-   int volume_ = 50;  // Default volume level
-   bool is_http_stream_;
-   audio_pipeline_handle_t pipeline_;
-   audio_element_handle_t i2s_stream_writer_;
-   audio_element_handle_t i2s_stream_writer_http_;
-   audio_element_handle_t i2s_stream_writer_raw_;
-   audio_element_handle_t filter_;
-   audio_element_handle_t http_filter_;
-   audio_element_handle_t raw_write_;
-   audio_element_handle_t http_stream_reader_;
-   
-   std::string current_url_;
-   ESPADFState state_{STATE_STOPPED};
+  
+ private:
+  int volume_ = 50;  // Default volume level
+  bool is_http_stream_;
+  audio_pipeline_handle_t pipeline_;
+  audio_element_handle_t i2s_stream_writer_;
+  audio_element_handle_t i2s_stream_writer_http_;
+  audio_element_handle_t i2s_stream_writer_raw_;
+  audio_element_handle_t filter_;
+  audio_element_handle_t http_filter_;
+  audio_element_handle_t raw_write_;
+  audio_element_handle_t http_stream_reader_;
+  
+  std::string current_url_;
+  ESPADFState state_{STATE_STOPPED};
 };
 
 }  // namespace esp_adf
