@@ -18,6 +18,15 @@
 namespace esphome {
 namespace esp_adf {
 
+enum ESPADFInternalState : uint8_t {
+  STATE_INTERNAL_STOPPED = 0,
+  STATE_INTERNAL_STARTING,
+  STATE_INTERNAL_RUNNING,
+  STATE_INTERNAL_STOPPING,
+  STATE_INTERNAL_PAUSED,
+  STATE_INTERNAL_PLAYING,
+};
+
 class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Component {
  public:
   float get_setup_priority() const override { return esphome::setup_priority::LATE; }
