@@ -90,21 +90,21 @@ void ESPADFSpeaker::initialize_audio_pipeline() {
     esp_err_t ret;
 
     // Initialize resample filter for HTTP stream
-    ret = configure_resample_filter(&this->filter_);
+    ret = configure_resample_filter(&this->http_filter_);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Error initializing resample filter: %s", esp_err_to_name(ret));
         return;
     }
 
     // Initialize I2S stream writer for HTTP
-    ret = configure_i2s_stream_writer_http(&this->i2s_stream_writer_);
+    ret = configure_i2s_stream_writer_http(&this->i2s_stream_writer_http_);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Error initializing I2S stream writer for HTTP: %s", esp_err_to_name(ret));
         return;
     }
 
     // Initialize I2S stream writer for raw (if needed)
-    ret = configure_i2s_stream_writer_raw(&this->i2s_stream_writer_);
+    ret = configure_i2s_stream_writer_raw(&this->i2s_stream_writer_raw_);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Error initializing I2S stream writer for raw: %s", esp_err_to_name(ret));
         return;
@@ -277,8 +277,8 @@ void ESPADFSpeaker::play_url(const std::string &url) {
     ESP_LOGI(TAG, "Register all elements to audio pipeline");
     if (audio_pipeline_register(this->pipeline_, this->http_stream_reader_, "http") != ESP_OK ||
         audio_pipeline_register(this->pipeline_, mp3_decoder, "mp3") != ESP_OK ||
-        audio_pipeline_register(this->pipeline_, filter_, "filter") != ESP_OK ||
-        audio_pipeline_register(this->pipeline_, this->i2s_stream_writer_, "i2s") != ESP_OK) {
+        audio_pipeline_register(this->pipeline_, http_filter_, "filter") != ESP_OK ||
+        audio_pipeline_register(this->pipeline_, this->i2s_stream_writer_http_, "i2s") != ESP_OK) {
         ESP_LOGE(TAG, "Failed to register pipeline elements");
         audio_pipeline_deinit(this->pipeline_);
         this->pipeline_ = nullptr;
