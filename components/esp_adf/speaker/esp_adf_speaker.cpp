@@ -620,6 +620,7 @@ void ESPADFSpeaker::stop() {
   if (this->state_ == speaker::STATE_STOPPED)
     return;
   if (this->state_ == speaker::STATE_STARTING) {
+		this->cleanup_audio_pipeline();
     this->state_ = speaker::STATE_STOPPED;
     return;
   }
