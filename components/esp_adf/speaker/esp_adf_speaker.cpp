@@ -20,6 +20,8 @@
 #include "audio_pipeline.h"
 #include "mp3_decoder.h"
 
+#include "esp_heap_caps.h"
+
 #ifdef USE_ESP_ADF_BOARD
 #include <board.h>
 #endif
