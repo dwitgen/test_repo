@@ -199,6 +199,9 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         .multi_out_num = 0,
         .cert_pem = NULL,
         .crt_bundle_attach = NULL,
+        .request_size = 4096,
+        .request_range_size = 0,
+        .user_agent = "esp-adf/1.0"
     };
 
     ESP_LOGI(TAG, "Passed Configure HTTP Stream");
