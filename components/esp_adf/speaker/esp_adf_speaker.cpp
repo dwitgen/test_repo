@@ -218,7 +218,7 @@ void ESPADFSpeaker::handle_mode_button() {
     if (this->state_ == speaker::STATE_RUNNING) {
         this->stop();
     } else if (this->state_ == speaker::STATE_STOPPED) {
-        this->play_url(this->"http://streaming.tdiradio.com:8000/house.mp3");  // Start playing the current URL
+        this->play_url("http://streaming.tdiradio.com:8000/house.mp3");  // Start playing the current URL
     }
 }
 
