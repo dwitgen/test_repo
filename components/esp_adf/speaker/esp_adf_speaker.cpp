@@ -37,6 +37,12 @@ static const char *const TAG = "esp_adf.speaker";
 #define ADC_ATTEN        ADC_ATTEN_DB_12
 
 // Change HTTP Ring Buffer
+// First, undefine the previous definition if it exists
+#ifdef HTTP_STREAM_RINGBUFFER_SIZE
+#undef HTTP_STREAM_RINGBUFFER_SIZE
+#endif
+
+// Redefine it to the new value
 #define HTTP_STREAM_RINGBUFFER_SIZE (12 * 1024)
 
 void check_heap_memory(const char* message) {
