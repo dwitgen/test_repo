@@ -349,8 +349,13 @@ void ESPADFSpeaker::play_url(const std::string &url) {
     }
   
     if (this->state_ != speaker::STATE_RUNNING && this->state_ != speaker::STATE_STARTING) {
+      ESP_LOGI(TAG, "State is Not Running");
       this->start();
     }
+   if (this->state_ == speaker::STATE_RUNNING) {
+			ESP_LOGI(TAG, "State is now Running");
+   }
+	
 								 
 }
 
