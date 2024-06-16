@@ -39,6 +39,9 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
   // Declare a method to get the current volume from the device
   int get_current_volume();
 
+  // Method to initialize pipeline
+  void initialize_audio_pipeline();
+
   // Declare a sensor for volume level
   sensor::Sensor *volume_sensor = nullptr;
 
