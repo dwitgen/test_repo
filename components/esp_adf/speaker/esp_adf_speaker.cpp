@@ -361,7 +361,7 @@ void ESPADFSpeaker::play_url(const std::string &url) {
       ESP_LOGI(TAG, "State is Not Running");
 			TaskEvent event;
   		event.type = TaskEventType::STARTED;
-      this->start_();
+      this->start();
     }
 	   if (this->state_ == speaker::STATE_RUNNING) {
 				ESP_LOGI(TAG, "State is now Running after button");
