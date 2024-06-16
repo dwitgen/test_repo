@@ -209,7 +209,7 @@ void ESPADFSpeaker::setup() {
 
 }
 
-unsigned long lastPressTime = 0;
+/*unsigned long lastPressTime = 0;
 const unsigned long debounceDelay = 200; // 200 milliseconds
 
 void ESPADFSpeaker::handle_mode_button() {
@@ -220,18 +220,20 @@ void ESPADFSpeaker::handle_mode_button() {
         this->is_http_stream_ = true;
         this->play_url("http://streaming.tdiradio.com:8000/house.mp3");
     }
-}
+}*/
 
-/*void ESPADFSpeaker::handle_mode_button() {
+void ESPADFSpeaker::handle_mode_button() {
     // Switch to HTTP stream mode and play the test stream
     this->is_http_stream_ = true;
     this->play_url("http://streaming.tdiradio.com:8000/house.mp3");
-}*/
+}
 
 void ESPADFSpeaker::play_url(const std::string &url) {
     ESP_LOGI(TAG, "Attempting to play URL: %s", url.c_str());
     // Ensure the pipeline is stopped if already running
-    if (this->pipeline_ != nullptr) {
+    // Cleanup the previous pipeline
+    this->cleanup_audio_pipeline();
+    /*if (this->pipeline_ != nullptr) {
         ESP_LOGI(TAG, "Stopping current audio pipeline");
 
         // Directly attempt to stop and terminate the pipeline
@@ -245,7 +247,7 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         this->pipeline_ = nullptr;
     } else {
         ESP_LOGI(TAG, "No existing audio pipeline to stop");
-    }
+    }*/
 
      // Configure HTTP stream
     http_stream_cfg_t http_cfg = {
@@ -370,6 +372,20 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         audio_pipeline_deinit(this->pipeline_);
         this->pipeline_ = nullptr;
         return;
+    }
+}
+
+void ESPADFSpeaker::cleanup_audio_pipeline() {
+    if (this->pipeline_ != nullptr) {
+        ESP_LOGI(TAG, "Stopping current audio pipeline");
+        audio_pipeline_stop(this->pipeline_);
+        audio_pipeline_wait_for_stop(this->pipeline_);
+        audio_pipeline_terminate(this->pipeline_);
+        audio_pipeline_unregister(this->pipeline_, this->i2s_stream_writer_);
+        audio_pipeline_unregister(this->pipeline_, this->filter_);
+        audio_pipeline_unregister(this->pipeline_, this->http_stream_reader_);
+        audio_pipeline_deinit(this->pipeline_);
+        this->pipeline_ = nullptr;
     }
 }
 
@@ -653,16 +669,37 @@ void ESPADFSpeaker::loop() {
 
     //ESP_LOGD(TAG, "ADC value: %d", adc_value);
     
+    // Read ADC value for button control
+    int adc_value = adc1_get_raw((adc1_channel_t)INPUT_BUTOP_ID);
+    if (adc_value < 0) {
+        ESP_LOGE(TAG, "ADC read error");
+        return;
+    }
+
+    static uint32_t last_mode_button_press = 0;
+    static uint32_t last_vol_up_button_press = 0;
+    static uint32_t last_vol_down_button_press = 0;
+    uint32_t current_time = millis();
+
     // Determine button press based on ADC value
     if (adc_value >= VOL_UP_THRESHOLD_LOW && adc_value <= VOL_UP_THRESHOLD_HIGH) {
-        ESP_LOGI(TAG, "Volume up detected");
-        this->volume_up();
+        if (current_time - last_vol_up_button_press > 200) {  // 200ms debounce time for volume up
+            ESP_LOGI(TAG, "Volume up detected");
+            this->volume_up();
+            last_vol_up_button_press = current_time;
+        }
     } else if (adc_value >= VOL_DOWN_THRESHOLD_LOW && adc_value <= VOL_DOWN_THRESHOLD_HIGH) {
-        ESP_LOGI(TAG, "Volume down detected");
-        this->volume_down();
+        if (current_time - last_vol_down_button_press > 200) {  // 200ms debounce time for volume down
+            ESP_LOGI(TAG, "Volume down detected");
+            this->volume_down();
+            last_vol_down_button_press = current_time;
+        }
     } else if (adc_value >= MODE_THRESHOLD_LOW && adc_value <= MODE_THRESHOLD_HIGH) {
-        ESP_LOGI(TAG, "Mode button detected");
-        this->handle_mode_button();
+        if (current_time - last_mode_button_press > 500) {  // 500ms debounce time for mode button
+            ESP_LOGI(TAG, "Mode button detected");
+            this->handle_mode_button();
+            last_mode_button_press = current_time;
+        }
     }
 }
 
