@@ -216,6 +216,7 @@ void ESPADFSpeaker::setup() {
 void ESPADFSpeaker::handle_mode_button() {
   //#define curren_url_ "http://streaming.tdiradio.com:8000/house.mp3"
     if (this->state_ == speaker::STATE_RUNNING) {
+				this->cleanup_audio_pipeline();
         this->stop();
     } else if (this->state_ == speaker::STATE_STOPPED) {
         this->play_url("http://streaming.tdiradio.com:8000/house.mp3");  // Start playing the current URL
@@ -347,6 +348,14 @@ void ESPADFSpeaker::play_url(const std::string &url) {
      // Enable the PA
     gpio_set_level(PA_ENABLE_GPIO, 1);  // Enable PA
     ESP_LOGI(TAG, "PA enabled");
+
+		if (this->state_ != speaker::STATE_RUNNING && this->state_ != speaker::STATE_STARTING) {
+      ESP_LOGI(TAG, "State is Not Running");
+      this->start();
+    }
+   if (this->state_ == speaker::STATE_RUNNING) {
+			ESP_LOGI(TAG, "State is now Running");
+   }
     
     // Start the audio pipeline
     ESP_LOGI(TAG, "Starting new audio pipeline for URL"); 
@@ -357,15 +366,7 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         return;
     }
   
-    if (this->state_ != speaker::STATE_RUNNING && this->state_ != speaker::STATE_STARTING) {
-      ESP_LOGI(TAG, "State is Not Running");
-      this->start();
-    }
-   if (this->state_ == speaker::STATE_RUNNING) {
-			ESP_LOGI(TAG, "State is now Running");
-   }
-	
-								 
+    						 
 }
 
 void ESPADFSpeaker::cleanup_audio_pipeline() {
