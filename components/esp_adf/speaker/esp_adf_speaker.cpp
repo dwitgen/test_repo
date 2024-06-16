@@ -192,12 +192,11 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         .task_core = HTTP_STREAM_TASK_CORE,
         .task_prio = HTTP_STREAM_TASK_PRIO,
         .stack_in_ext = false,
-        .event_handle = [](audio_event_iface_msg_t *msg, void *user_data) {
-            ESP_LOGI(TAG, "HTTP event received: cmd=%d, source_type=%d, data_len=%d",
-                msg->cmd, msg->source_type, msg->data_len);
-            if (msg->cmd == AEL_MSG_CMD_REPORT_MUSIC_INFO) {
+        .event_handle = [](http_stream_event_msg_t *msg) -> int {
+            ESP_LOGI(TAG, "HTTP event received: event_id=%d, data_len=%d", msg->event_id, msg->data_len);
+            if (msg->event_id == HTTP_STREAM_ON_RESPONSE) {
                 audio_element_info_t music_info = {0};
-                audio_element_getinfo(msg->source, &music_info);
+                audio_element_getinfo(msg->el, &music_info);
                 ESP_LOGI(TAG, "Received music info from HTTP stream: sample_rate=%d, bits=%d, channels=%d",
                     music_info.sample_rates, music_info.bits, music_info.channels);
             }
