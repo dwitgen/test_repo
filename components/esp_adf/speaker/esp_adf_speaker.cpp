@@ -642,38 +642,30 @@ void ESPADFSpeaker::stop() {
 }
 
 void ESPADFSpeaker::watch_() {
-    TaskEvent event;
-    if (xQueueReceive(this->event_queue_, &event, 0) == pdTRUE) {
-        switch (event.type) {
-            case TaskEventType::STARTING:
-            case TaskEventType::STOPPING:
-                break;
-            case TaskEventType::STARTED:
-                this->state_ = speaker::STATE_RUNNING;
-                break;
-            case TaskEventType::RUNNING:
-                this->status_clear_warning();
-                break;
-            case TaskEventType::PLAYING:
-                // Handle playing state
-                this->state_ = speaker::STATE_PLAYING;
-                break;
-            case TaskEventType::PAUSED:
-                // Handle paused state
-                this->state_ = speaker::STATE_PAUSED;
-                break;
-            case TaskEventType::STOPPED:
-                this->parent_->unlock();
-                this->state_ = speaker::STATE_STOPPED;
-                vTaskDelete(this->player_task_handle_);
-                this->player_task_handle_ = nullptr;
-                break;
-            case TaskEventType::WARNING:
-                ESP_LOGW(TAG, "Error writing to pipeline: %s", esp_err_to_name(event.err));
-                this->status_set_warning();
-                break;
-        }
+  TaskEvent event;
+  if (xQueueReceive(this->event_queue_, &event, 0) == pdTRUE) {
+    switch (event.type) {
+      case TaskEventType::STARTING:
+      case TaskEventType::STOPPING:
+        break;
+      case TaskEventType::STARTED:
+        this->state_ = speaker::STATE_RUNNING;
+        break;
+      case TaskEventType::RUNNING:
+        this->status_clear_warning();
+        break;
+      case TaskEventType::STOPPED:
+        this->parent_->unlock();
+        this->state_ = speaker::STATE_STOPPED;
+        vTaskDelete(this->player_task_handle_);
+        this->player_task_handle_ = nullptr;
+        break;
+      case TaskEventType::WARNING:
+        ESP_LOGW(TAG, "Error writing to pipeline: %s", esp_err_to_name(event.err));
+        this->status_set_warning();
+        break;
     }
+  }
 }
 
 void ESPADFSpeaker::loop() {
@@ -683,8 +675,6 @@ void ESPADFSpeaker::loop() {
       this->start_();
       break;
     case speaker::STATE_RUNNING:
-    case speaker::STATE_PLAYING:
-    case speaker::STATE_PAUSED:
     case speaker::STATE_STOPPING:
     case speaker::STATE_STOPPED:
       break;
