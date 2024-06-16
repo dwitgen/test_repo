@@ -18,6 +18,7 @@
 #include "esp_http_client.h"
 #include "http_stream.h"
 #include "audio_pipeline.h"
+#include "mp3_decoder.h"
 
 #ifdef USE_ESP_ADF_BOARD
 #include <board.h>
