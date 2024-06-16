@@ -343,7 +343,11 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         return;
     }
     ESP_LOGI(TAG, "Linked pipeline elements");
-  
+
+     // Enable the PA
+    gpio_set_level(PA_ENABLE_GPIO, 1);  // Enable PA
+    ESP_LOGI(TAG, "PA enabled");
+    
     // Start the audio pipeline
     ESP_LOGI(TAG, "Starting new audio pipeline for URL");
     if (audio_pipeline_run(this->pipeline_) != ESP_OK) {
