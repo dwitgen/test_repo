@@ -18,6 +18,15 @@
 namespace esphome {
 namespace esp_adf {
 
+enum ESPADFState : uint8_t {
+  STATE_STOPPED = 0,
+  STATE_STARTING,
+  STATE_RUNNING,
+  STATE_STOPPING,
+  STATE_PAUSED,   // Add PAUSED state
+  STATE_PLAYING,  // Add PLAYING state
+};
+
 class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Component {
  public:
   float get_setup_priority() const override { return esphome::setup_priority::LATE; }
@@ -77,10 +86,12 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
    audio_element_handle_t http_filter_;
    audio_element_handle_t raw_write_;
    audio_element_handle_t http_stream_reader_;
+   
+   std::string current_url_;
+   ESPADFState state_{STATE_STOPPED};
 };
 
 }  // namespace esp_adf
 }  // namespace esphome
 
 #endif  // USE_ESP_IDF
-
