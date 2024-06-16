@@ -365,6 +365,7 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         this->pipeline_ = nullptr;
         return;
     }
+    this->state_ = STATE_PLAYING;
 }
 
 void ESPADFSpeaker::cleanup_audio_pipeline() {
@@ -678,12 +679,14 @@ void ESPADFSpeaker::watch_() {
 void ESPADFSpeaker::loop() {
   this->watch_();
   switch (this->state_) {
-    case speaker::STATE_STARTING:
+    case STATE_STARTING:
       this->start_();
       break;
-    case speaker::STATE_RUNNING:
-    case speaker::STATE_STOPPING:
-    case speaker::STATE_STOPPED:
+    case STATE_RUNNING:
+    case STATE_PLAYING:
+    case STATE_STOPPING:
+    case STATE_STOPPED:
+    case STATE_PAUSED:
       break;
   }
    // Read ADC value for button control
