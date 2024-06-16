@@ -320,7 +320,7 @@ void ESPADFSpeaker::play_url(const std::string &url) {
      // Register the pipeline elements
     ESP_LOGI(TAG, "Register all elements to audio pipeline");
     if (audio_pipeline_register(this->pipeline_, this->http_stream_reader_, "http") != ESP_OK ||
-        audio_pipeline_register(this->pipeline_, mp3_decoder, "mp3") != ESP_OK ||
+       // audio_pipeline_register(this->pipeline_, mp3_decoder, "mp3") != ESP_OK ||
         audio_pipeline_register(this->pipeline_, filter, "filter") != ESP_OK ||
         audio_pipeline_register(this->pipeline_, this->i2s_stream_writer_, "i2s") != ESP_OK) {
         ESP_LOGE(TAG, "Failed to register pipeline elements");
@@ -335,8 +335,8 @@ void ESPADFSpeaker::play_url(const std::string &url) {
 
     // Link the pipeline elements
     ESP_LOGI(TAG, "Link elements in pipeline");
-    const char *link_tag[4] = {"http", "mp3", "filter", "i2s"};
-    if (audio_pipeline_link(this->pipeline_, &link_tag[0], 4) != ESP_OK) {
+    const char *link_tag[4] = {"http", "mp3", "i2s"}; //"filter", "i2s"};
+    if (audio_pipeline_link(this->pipeline_, &link_tag[0], 3) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to link pipeline elements");
         audio_pipeline_deinit(this->pipeline_);
         this->pipeline_ = nullptr;
