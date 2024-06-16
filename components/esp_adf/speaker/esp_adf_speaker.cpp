@@ -273,17 +273,41 @@ void ESPADFSpeaker::play_url(const std::string &url) {
     ESP_LOGI(TAG, "HTTP passed initilialize new audio pipeline");
 
      
-     // Register the pipeline elements
+    // Register the pipeline elements
     ESP_LOGI(TAG, "Register all elements to audio pipeline");
-    if (audio_pipeline_register(this->pipeline_, this->http_stream_reader_, "http") != ESP_OK ||
-        audio_pipeline_register(this->pipeline_, mp3_decoder, "mp3") != ESP_OK ||
-        audio_pipeline_register(this->pipeline_, http_filter_, "filter") != ESP_OK ||
-        audio_pipeline_register(this->pipeline_, this->i2s_stream_writer_http_, "i2s") != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to register pipeline elements");
+
+    ESP_LOGI(TAG, "Register HTTP stream reader");
+    if (audio_pipeline_register(this->pipeline_, this->http_stream_reader_, "http") != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to register HTTP stream reader");
         audio_pipeline_deinit(this->pipeline_);
         this->pipeline_ = nullptr;
         return;
     }
+
+    ESP_LOGI(TAG, "Register MP3 decoder");
+    if (audio_pipeline_register(this->pipeline_, mp3_decoder, "mp3") != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to register MP3 decoder");
+        audio_pipeline_deinit(this->pipeline_);
+        this->pipeline_ = nullptr;
+        return;
+    }
+
+    ESP_LOGI(TAG, "Register resample filter");
+    if (audio_pipeline_register(this->pipeline_, this->http_filter_, "filter") != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to register resample filter");
+        audio_pipeline_deinit(this->pipeline_);
+        this->pipeline_ = nullptr;
+        return;
+    }
+
+    ESP_LOGI(TAG, "Register I2S stream writer");
+    if (audio_pipeline_register(this->pipeline_, this->i2s_stream_writer_http_, "i2s") != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to register I2S stream writer");
+        audio_pipeline_deinit(this->pipeline_);
+        this->pipeline_ = nullptr;
+        return;
+    }
+
     ESP_LOGI(TAG, "Registered HTTP stream reader in pipeline");
     ESP_LOGI(TAG, "Registered MP3 decoder in pipeline");
     ESP_LOGI(TAG, "Registered resample filter in pipeline");
