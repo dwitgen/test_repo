@@ -388,8 +388,8 @@ void ESPADFSpeaker::cleanup_audio_pipeline() {
         audio_pipeline_stop(this->pipeline_);
         audio_pipeline_wait_for_stop(this->pipeline_);
         audio_pipeline_terminate(this->pipeline_);
-        audio_pipeline_unregister(this->pipeline_, this->i2s_stream_writer_);
-        audio_pipeline_unregister(this->pipeline_, this->filter_);
+        audio_pipeline_unregister(this->pipeline_, this->i2s_stream_writer_http);
+        audio_pipeline_unregister(this->pipeline_, this->http_filter_);
         audio_pipeline_unregister(this->pipeline_, this->http_stream_reader_);
         audio_pipeline_deinit(this->pipeline_);
         this->pipeline_ = nullptr;
