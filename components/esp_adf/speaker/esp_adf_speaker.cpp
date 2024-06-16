@@ -219,8 +219,19 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         return;
     }
     ESP_LOGI(TAG, "HTTP stream reader init");
+    
     audio_element_set_uri(this->http_stream_reader_, url.c_str());
     ESP_LOGI(TAG, "HTTP set URI");
+
+    // Initialize MP3 Decoder
+    ESP_LOGI(TAG, "Create MP3 decoder to decode MP3 file");
+    mp3_decoder_cfg_t mp3_cfg = DEFAULT_MP3_DECODER_CONFIG();
+    audio_element_handle_t mp3_decoder = mp3_decoder_init(&mp3_cfg);
+    if (mp3_decoder == NULL) {
+        ESP_LOGE(TAG, "Failed to initialize MP3 decoder");
+        return;
+    }
+    
     // Initialize a new audio pipeline for the URL stream
     audio_pipeline_cfg_t pipeline_cfg = {
         .rb_size = 8 * 1024,
@@ -278,31 +289,31 @@ void ESPADFSpeaker::play_url(const std::string &url) {
     }
     
     
-     // Register the pipeline elements
-    if (audio_pipeline_register(this->pipeline_, this->http_stream_reader_, "http") != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to register HTTP stream reader in pipeline");
+    // Register the pipeline elements
+    ESP_LOGI(TAG, "Register all elements to audio pipeline");
+    if (audio_pipeline_register(this->pipeline_, this->http_stream_reader_, "http") != ESP_OK ||
+        audio_pipeline_register(this->pipeline_, mp3_decoder, "mp3") != ESP_OK ||
+        audio_pipeline_register(this->pipeline_, this->i2s_stream_writer_, "i2s") != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to register pipeline elements");
         audio_pipeline_deinit(this->pipeline_);
         this->pipeline_ = nullptr;
         return;
     }
     ESP_LOGI(TAG, "Registered HTTP stream reader in pipeline");
-
-    if (audio_pipeline_register(this->pipeline_, this->i2s_stream_writer_, "i2s") != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to register I2S stream writer in pipeline");
-        audio_pipeline_deinit(this->pipeline_);
-        this->pipeline_ = nullptr;
-        return;
-    }
+    ESP_LOGI(TAG, "Registered MP3 decoder in pipeline");
     ESP_LOGI(TAG, "Registered I2S stream writer in pipeline");
-
-    const char *link_tag[2] = {"http", "i2s"};
-    if (audio_pipeline_link(this->pipeline_, &link_tag[0], 2) != ESP_OK) {
+  
+    // Link the pipeline elements
+    ESP_LOGI(TAG, "Link elements in pipeline");
+    const char *link_tag[3] = {"http", "mp3", "i2s"};
+    if (audio_pipeline_link(this->pipeline_, &link_tag[0], 3) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to link pipeline elements");
         audio_pipeline_deinit(this->pipeline_);
         this->pipeline_ = nullptr;
         return;
     }
     ESP_LOGI(TAG, "Linked pipeline elements");
+  
     // Start the audio pipeline
     ESP_LOGI(TAG, "Starting new audio pipeline for URL");
     if (audio_pipeline_run(this->pipeline_) != ESP_OK) {
