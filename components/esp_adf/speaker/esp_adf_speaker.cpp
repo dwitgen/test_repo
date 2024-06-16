@@ -209,12 +209,24 @@ void ESPADFSpeaker::setup() {
 
 }
 
+unsigned long lastPressTime = 0;
+const unsigned long debounceDelay = 200; // 200 milliseconds
 
 void ESPADFSpeaker::handle_mode_button() {
+    unsigned long currentTime = millis();
+    if (currentTime - lastPressTime > debounceDelay) {
+        lastPressTime = currentTime;
+        // Process the mode button press
+        this->is_http_stream_ = true;
+        this->play_url("http://streaming.tdiradio.com:8000/house.mp3");
+    }
+}
+
+/*void ESPADFSpeaker::handle_mode_button() {
     // Switch to HTTP stream mode and play the test stream
     this->is_http_stream_ = true;
     this->play_url("http://streaming.tdiradio.com:8000/house.mp3");
-}
+}*/
 
 void ESPADFSpeaker::play_url(const std::string &url) {
     ESP_LOGI(TAG, "Attempting to play URL: %s", url.c_str());
