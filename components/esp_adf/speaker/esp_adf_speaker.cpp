@@ -349,7 +349,7 @@ void ESPADFSpeaker::play_url(const std::string &url) {
     gpio_set_level(PA_ENABLE_GPIO, 1);  // Enable PA
     ESP_LOGI(TAG, "PA enabled");
 
-		if (this->state_ != speaker::STATE_RUNNING && this->state_ != speaker::STATE_STARTING) {
+	if (this->state_ != speaker::STATE_RUNNING && this->state_ != speaker::STATE_STARTING) {
       ESP_LOGI(TAG, "State is Not Running");
       this->start();
     }
@@ -359,7 +359,15 @@ void ESPADFSpeaker::play_url(const std::string &url) {
     
     // Start the audio pipeline
     ESP_LOGI(TAG, "Starting new audio pipeline for URL"); 
-    if (audio_pipeline_run(this->pipeline_) != ESP_OK) {
+    if (audio_pipeline_run(this->pipeline_) == ESP_OK) {
+	    if (this->state_ != speaker::STATE_RUNNING && this->state_ != speaker::STATE_STARTING) {
+	      ESP_LOGI(TAG, "State is Not Running");
+	      this->start();
+	    }
+	   if (this->state_ == speaker::STATE_RUNNING) {
+				ESP_LOGI(TAG, "State is now Running");
+	   }
+    } else {
         ESP_LOGE(TAG, "Failed to run audio pipeline");
         audio_pipeline_deinit(this->pipeline_);
         this->pipeline_ = nullptr;
