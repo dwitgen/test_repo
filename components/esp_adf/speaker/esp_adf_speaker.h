@@ -27,6 +27,7 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
 
   void start() override;
   void stop() override;
+  void pause() override;
 
   size_t play(const uint8_t *data, size_t length) override;
 
@@ -49,6 +50,8 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
   // Declare methods for media/http streaming
   void handle_mode_button();
   void play_url(const std::string &url); 
+  void handle_rec_button();
+  
 
   protected:
   void start_();
