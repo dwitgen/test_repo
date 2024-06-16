@@ -184,6 +184,9 @@ void ESPADFSpeaker::setup() {
   adc1_config_width(ADC_WIDTH_BIT);
   adc1_config_channel_atten((adc1_channel_t)but_channel, ADC_ATTEN);
 
+  // Initialize audio pipeline
+  this->initialize_audio_pipeline();
+
 }
 
 
