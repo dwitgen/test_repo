@@ -336,7 +336,7 @@ void ESPADFSpeaker::play_url(const std::string &url) {
     // Link the pipeline elements
     ESP_LOGI(TAG, "Link elements in pipeline");
     const char *link_tag[4] = {"http", "mp3","filter", "i2s"};
-    if (audio_pipeline_link(this->pipeline_, &link_tag[0], 3) != ESP_OK) {
+    if (audio_pipeline_link(this->pipeline_, &link_tag[0], 4) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to link pipeline elements");
         audio_pipeline_deinit(this->pipeline_);
         this->pipeline_ = nullptr;
