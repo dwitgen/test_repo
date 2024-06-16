@@ -216,6 +216,7 @@ void ESPADFSpeaker::setup() {
 void ESPADFSpeaker::handle_mode_button() {
   //#define curren_url_ "http://streaming.tdiradio.com:8000/house.mp3"
 	if (this->state_ == speaker::STATE_STOPPED ) { //RUNNING && this->state_ != speaker::STATE_STARTING) {
+		ESP_LOGI(TAG, "Mode button, speaker stopped");
 		this->play_url("http://streaming.tdiradio.com:8000/house.mp3");
 	} else {
 		ESP_LOGI(TAG, "State is stopping");
@@ -226,6 +227,11 @@ void ESPADFSpeaker::handle_mode_button() {
 }
 
 void ESPADFSpeaker::play_url(const std::string &url) {
+
+		 if (this->state_ == speaker::STATE_RUNNING || this->state_ == speaker::STATE_STARTING || || this->state_ == speaker::STATE_STARTED  ) {
+        ESP_LOGI(TAG, "Audio stream is already running, ignoring play request");
+        return;
+    }
     ESP_LOGI(TAG, "Attempting to play URL: %s", url.c_str());
     // Ensure the pipeline is stopped if already running
     // Cleanup the previous pipeline
