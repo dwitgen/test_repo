@@ -32,10 +32,6 @@ namespace esp_adf {
 static const size_t BUFFER_COUNT = 50;
 static const char *const TAG = "esp_adf.speaker";
 
-//Button debounce
-unsigned long lastPressTime = 0;
-const unsigned long debounceDelay = 200; // 200 milliseconds
-
 // Define ADC configuration
 #define ADC_WIDTH_BIT    ADC_WIDTH_BIT_12
 #define ADC_ATTEN        ADC_ATTEN_DB_12
@@ -215,13 +211,9 @@ void ESPADFSpeaker::setup() {
 
 
 void ESPADFSpeaker::handle_mode_button() {
-    unsigned long currentTime = millis();
-    if (currentTime - lastPressTime > debounceDelay) {
-        lastPressTime = currentTime;
-        // Switch to HTTP stream mode and play the test stream
-        this->is_http_stream_ = true;
-        this->play_url("http://streaming.tdiradio.com:8000/house.mp3");
-    }
+    // Switch to HTTP stream mode and play the test stream
+    this->is_http_stream_ = true;
+    this->play_url("http://streaming.tdiradio.com:8000/house.mp3");
 }
 
 void ESPADFSpeaker::play_url(const std::string &url) {
@@ -230,13 +222,9 @@ void ESPADFSpeaker::play_url(const std::string &url) {
     if (this->pipeline_ != nullptr) {
         ESP_LOGI(TAG, "Stopping current audio pipeline");
 
-        // Check the pipeline state
-        audio_pipeline_state_t state = audio_pipeline_get_state(this->pipeline_);
-        if (state != AUDIO_PIPELINE_STATE_STOPPED && state != AUDIO_PIPELINE_STATE_FINISHED) {
-            audio_pipeline_stop(this->pipeline_);
-            audio_pipeline_wait_for_stop(this->pipeline_);
-        }
-
+        // Directly attempt to stop and terminate the pipeline
+        audio_pipeline_stop(this->pipeline_);
+        audio_pipeline_wait_for_stop(this->pipeline_);
         audio_pipeline_terminate(this->pipeline_);
         audio_pipeline_unregister(this->pipeline_, this->i2s_stream_writer_);
         audio_pipeline_unregister(this->pipeline_, this->filter_);
