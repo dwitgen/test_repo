@@ -225,10 +225,7 @@ void ESPADFSpeaker::handle_mode_button() {
 	} else if (this->state_ == speaker::STATE_STARTING) {
 			ESP_LOGI(TAG, "State is starting");
 			
-	} else if (this->state_ == speaker::STATE_STARTED) {
-			ESP_LOGI(TAG, "State is started");
-			
-	}
+	} 
 }
 
 void ESPADFSpeaker::play_url(const std::string &url) {
@@ -360,7 +357,7 @@ void ESPADFSpeaker::play_url(const std::string &url) {
 	if (this->state_ != speaker::STATE_RUNNING && this->state_ != speaker::STATE_STARTING) {
       ESP_LOGI(TAG, "State is Not Running");
 			TaskEvent event;
-  		event.type = TaskEventType::RUNNING;
+  		event.type = TaskEventType::STARTED;
       this->start();
     }
 	   if (this->state_ == speaker::STATE_RUNNING) {
@@ -370,11 +367,7 @@ void ESPADFSpeaker::play_url(const std::string &url) {
 			ESP_LOGI(TAG, "State is starting after button");
 				
 		}
-		if (this->state_ == speaker::STATE_STARTED) {
-				ESP_LOGI(TAG, "State is started after button");
-				
-		}
-    
+		
     // Start the audio pipeline
     ESP_LOGI(TAG, "Starting new audio pipeline for URL"); 
     if (audio_pipeline_run(this->pipeline_) != ESP_OK) {
