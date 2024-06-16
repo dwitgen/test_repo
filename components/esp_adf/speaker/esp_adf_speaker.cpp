@@ -343,6 +343,20 @@ void ESPADFSpeaker::play_url(const std::string &url) {
 								 
 }
 
+void ESPADFSpeaker::cleanup_audio_pipeline() {
+    if (this->pipeline_ != nullptr) {
+        ESP_LOGI(TAG, "Stopping current audio pipeline");
+        audio_pipeline_stop(this->pipeline_);
+        audio_pipeline_wait_for_stop(this->pipeline_);
+        audio_pipeline_terminate(this->pipeline_);
+        audio_pipeline_unregister(this->pipeline_, this->i2s_stream_writer_);
+        audio_pipeline_unregister(this->pipeline_, this->filter_);
+        audio_pipeline_unregister(this->pipeline_, this->http_stream_reader_);
+        audio_pipeline_deinit(this->pipeline_);
+        this->pipeline_ = nullptr;
+    }
+}
+
 void ESPADFSpeaker::start() { this->state_ = speaker::STATE_STARTING; }
 void ESPADFSpeaker::start_() {
   if (!this->parent_->try_lock()) {
