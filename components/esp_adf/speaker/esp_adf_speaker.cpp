@@ -36,6 +36,12 @@ static const char *const TAG = "esp_adf.speaker";
 #define ADC_WIDTH_BIT    ADC_WIDTH_BIT_12
 #define ADC_ATTEN        ADC_ATTEN_DB_12
 
+// Usewd for testing and can be removed if desired.
+void check_heap_memory(const char* message) {
+    size_t free_heap_size = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    ESP_LOGI("Heap Memory Check", "%s - Free heap size: %d bytes", message, free_heap_size);
+}
+
 void ESPADFSpeaker::set_volume(int volume) {
     ESP_LOGI(TAG, "Setting volume to %d", volume);
     
