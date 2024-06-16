@@ -222,6 +222,12 @@ void ESPADFSpeaker::handle_mode_button() {
 	} else if (this->state_ == speaker::STATE_STOPPED) {
 			ESP_LOGI(TAG, "State is stopped");
 			this->play_url("http://streaming.tdiradio.com:8000/house.mp3");  // Start playing the current URL
+	} else if (this->state_ == speaker::STATE_STARTING) {
+			ESP_LOGI(TAG, "State is starting");
+			
+	} else if (this->state_ == speaker::STATE_STARTED) {
+			ESP_LOGI(TAG, "State is started");
+			
 	}
 }
 
@@ -357,9 +363,17 @@ void ESPADFSpeaker::play_url(const std::string &url) {
   		event.type = TaskEventType::RUNNING;
       this->start();
     }
-   if (this->state_ == speaker::STATE_RUNNING) {
-			ESP_LOGI(TAG, "State is now Running");
-   }
+	   if (this->state_ == speaker::STATE_RUNNING) {
+				ESP_LOGI(TAG, "State is now Running after button");
+	   }
+		if (this->state_ == speaker::STATE_STARTING) {
+			ESP_LOGI(TAG, "State is starting after button");
+				
+		}
+		if (this->state_ == speaker::STATE_STARTED) {
+				ESP_LOGI(TAG, "State is started after button");
+				
+		}
     
     // Start the audio pipeline
     ESP_LOGI(TAG, "Starting new audio pipeline for URL"); 
