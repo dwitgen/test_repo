@@ -220,10 +220,12 @@ void ESPADFSpeaker::handle_mode_button() {
 		this->cleanup_audio_pipeline();
 		this->stop();
 	} else if (this->state_ == speaker::STATE_STOPPED) {
-			ESP_LOGI(TAG, "State is stopped");
-			this->play_url("http://streaming.tdiradio.com:8000/house.mp3");  // Start playing the current URL
+		ESP_LOGI(TAG, "State is stopped");
+		this->play_url("http://streaming.tdiradio.com:8000/house.mp3");  // Start playing the current URL
 	} else if (this->state_ == speaker::STATE_STARTING) {
-			ESP_LOGI(TAG, "State is starting");
+		ESP_LOGI(TAG, "State is starting");
+		this->cleanup_audio_pipeline();
+		this->stop();
 			
 	} 
 }
@@ -358,7 +360,7 @@ void ESPADFSpeaker::play_url(const std::string &url) {
       ESP_LOGI(TAG, "State is Not Running");
 			TaskEvent event;
   		event.type = TaskEventType::STARTED;
-      this->start();
+      this->start_();
     }
 	   if (this->state_ == speaker::STATE_RUNNING) {
 				ESP_LOGI(TAG, "State is now Running after button");
