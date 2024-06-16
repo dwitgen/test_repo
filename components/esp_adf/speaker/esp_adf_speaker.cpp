@@ -669,13 +669,6 @@ void ESPADFSpeaker::loop() {
 
     //ESP_LOGD(TAG, "ADC value: %d", adc_value);
     
-    // Read ADC value for button control
-    int adc_value = adc1_get_raw((adc1_channel_t)INPUT_BUTOP_ID);
-    if (adc_value < 0) {
-        ESP_LOGE(TAG, "ADC read error");
-        return;
-    }
-
     static uint32_t last_mode_button_press = 0;
     static uint32_t last_vol_up_button_press = 0;
     static uint32_t last_vol_down_button_press = 0;
