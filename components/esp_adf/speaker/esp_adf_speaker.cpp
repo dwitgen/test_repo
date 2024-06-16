@@ -347,7 +347,10 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         this->pipeline_ = nullptr;
         return;
     }
-    //this->state_ = STATE_RUNNING;
+  
+    if (this->state_ != speaker::STATE_RUNNING && this->state_ != speaker::STATE_STARTING) {
+      this->start();
+    }
 								 
 }
 
