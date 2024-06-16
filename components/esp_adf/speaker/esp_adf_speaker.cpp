@@ -221,15 +221,23 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         return;
     }
     ESP_LOGI(TAG, "HTTP passed initilialize new audio pipeline");
-    // Register the pipeline elements
-    if (audio_pipeline_register(this->pipeline_, this->http_stream_reader_, "http") != ESP_OK ||
-        audio_pipeline_register(this->pipeline_, this->i2s_stream_writer_, "i2s") != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to register pipeline elements");
+     // Register the pipeline elements
+    if (audio_pipeline_register(this->pipeline_, this->http_stream_reader_, "http") != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to register HTTP stream reader in pipeline");
         audio_pipeline_deinit(this->pipeline_);
         this->pipeline_ = nullptr;
         return;
     }
-    ESP_LOGI(TAG, "HTTP passed register the pipeline elements");
+    ESP_LOGI(TAG, "Registered HTTP stream reader in pipeline");
+
+    if (audio_pipeline_register(this->pipeline_, this->i2s_stream_writer_, "i2s") != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to register I2S stream writer in pipeline");
+        audio_pipeline_deinit(this->pipeline_);
+        this->pipeline_ = nullptr;
+        return;
+    }
+    ESP_LOGI(TAG, "Registered I2S stream writer in pipeline");
+
     const char *link_tag[2] = {"http", "i2s"};
     if (audio_pipeline_link(this->pipeline_, &link_tag[0], 2) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to link pipeline elements");
@@ -237,7 +245,7 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         this->pipeline_ = nullptr;
         return;
     }
-    ESP_LOGI(TAG, "HTTP passed construct link tag");
+    ESP_LOGI(TAG, "Linked pipeline elements");
     // Start the audio pipeline
     ESP_LOGI(TAG, "Starting new audio pipeline for URL");
     if (audio_pipeline_run(this->pipeline_) != ESP_OK) {
