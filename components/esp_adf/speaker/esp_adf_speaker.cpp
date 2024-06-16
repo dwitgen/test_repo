@@ -214,11 +214,11 @@ void ESPADFSpeaker::setup() {
 }*/
 
 void ESPADFSpeaker::handle_mode_button() {
-  #define curren_url_ "http://streaming.tdiradio.com:8000/house.mp3"
+  //#define curren_url_ "http://streaming.tdiradio.com:8000/house.mp3"
     if (this->state_ == speaker::STATE_RUNNING) {
         this->stop();
     } else if (this->state_ == speaker::STATE_STOPPED) {
-        this->play_url(this->current_url_);  // Start playing the current URL
+        this->play_url(this->"http://streaming.tdiradio.com:8000/house.mp3");  // Start playing the current URL
     }
 }
 
