@@ -677,16 +677,16 @@ void ESPADFSpeaker::watch_() {
 }
 
 void ESPADFSpeaker::loop() {
-  this->watch_();
+   this->watch_();
   switch (this->state_) {
-    case STATE_STARTING:
+    case speaker::STATE_STARTING:
       this->start_();
       break;
-    case STATE_RUNNING:
-    case STATE_PLAYING:
-    case STATE_STOPPING:
-    case STATE_STOPPED:
-    case STATE_PAUSED:
+    case speaker::STATE_RUNNING:
+    case speaker::STATE_PLAYING:
+    case speaker::STATE_PAUSED:
+    case speaker::STATE_STOPPING:
+    case speaker::STATE_STOPPED:
       break;
   }
    // Read ADC value for button control
