@@ -653,16 +653,30 @@ void ESPADFSpeaker::loop() {
 
     //ESP_LOGD(TAG, "ADC value: %d", adc_value);
     
+    static uint32_t last_mode_button_press = 0;
+    static uint32_t last_vol_up_button_press = 0;
+    static uint32_t last_vol_down_button_press = 0;
+    uint32_t current_time = millis();
+
     // Determine button press based on ADC value
     if (adc_value >= VOL_UP_THRESHOLD_LOW && adc_value <= VOL_UP_THRESHOLD_HIGH) {
-        ESP_LOGI(TAG, "Volume up detected");
-        this->volume_up();
+        if (current_time - last_vol_up_button_press > 200) {  // 200ms debounce time for volume up
+            ESP_LOGI(TAG, "Volume up detected");
+            this->volume_up();
+            last_vol_up_button_press = current_time;
+        }
     } else if (adc_value >= VOL_DOWN_THRESHOLD_LOW && adc_value <= VOL_DOWN_THRESHOLD_HIGH) {
-        ESP_LOGI(TAG, "Volume down detected");
-        this->volume_down();
+        if (current_time - last_vol_down_button_press > 200) {  // 200ms debounce time for volume down
+            ESP_LOGI(TAG, "Volume down detected");
+            this->volume_down();
+            last_vol_down_button_press = current_time;
+        }
     } else if (adc_value >= MODE_THRESHOLD_LOW && adc_value <= MODE_THRESHOLD_HIGH) {
-        ESP_LOGI(TAG, "Mode button detected");
-        this->handle_mode_button();
+        if (current_time - last_mode_button_press > 500) {  // 500ms debounce time for mode button
+            ESP_LOGI(TAG, "Mode button detected");
+            this->handle_mode_button();
+            last_mode_button_press = current_time;
+        }
     }
 }
 
