@@ -67,6 +67,7 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
    audio_pipeline_handle_t pipeline_;
    audio_element_handle_t i2s_stream_writer_http_;
    audio_element_handle_t i2s_stream_writer_raw_;
+   audio_element_handle_t filter_;
    audio_element_handle_t http_filter_;
    audio_element_handle_t raw_write_;
    audio_element_handle_t http_stream_reader_;
