@@ -243,7 +243,7 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         .task_core = HTTP_STREAM_TASK_CORE,
         .task_prio = HTTP_STREAM_TASK_PRIO,
         .stack_in_ext = false,
-        .event_handle = [](http_stream_event_msg_t *msg) -> int {
+        .event_handle = NULL, /* [](http_stream_event_msg_t *msg) -> int {
             ESP_LOGI(TAG, "HTTP event received: event_id=%d, buffer_len=%d", msg->event_id, msg->buffer_len);
             if (msg->event_id == HTTP_STREAM_ON_RESPONSE) {
                 audio_element_info_t music_info = {0};
@@ -252,7 +252,7 @@ void ESPADFSpeaker::play_url(const std::string &url) {
                     music_info.sample_rates, music_info.bits, music_info.channels);
             }
             return ESP_OK;
-        },
+        },*/
         .user_data = NULL,
         .auto_connect_next_track = false,
         .enable_playlist_parser = false,
