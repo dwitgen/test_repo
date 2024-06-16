@@ -214,7 +214,7 @@ void ESPADFSpeaker::setup() {
 }*/
 
 void ESPADFSpeaker::handle_mode_button() {
-  $define curren_url_ "http://streaming.tdiradio.com:8000/house.mp3"
+  #define curren_url_ "http://streaming.tdiradio.com:8000/house.mp3"
     if (this->state_ == speaker::STATE_PLAYING) {
         this->pause();
     } else if (this->state_ == speaker::STATE_PAUSED) {
@@ -605,6 +605,22 @@ void ESPADFSpeaker::pause() {
         ESP_LOGI(TAG, "Pausing current audio pipeline");
         audio_pipeline_pause(this->pipeline_);
         this->state_ = speaker::STATE_PAUSED;
+
+        // Send PAUSED event
+        TaskEvent event = {.type = TaskEventType::PAUSED};
+        xQueueSend(this->event_queue_, &event, portMAX_DELAY);
+    }
+}
+
+void ESPADFSpeaker::play() {
+    if (this->pipeline_ != nullptr && this->state_ == speaker::STATE_PAUSED) {
+        ESP_LOGI(TAG, "Resuming current audio pipeline");
+        audio_pipeline_resume(this->pipeline_);
+        this->state_ = speaker::STATE_PLAYING;
+
+        // Send PLAYING event
+        TaskEvent event = {.type = TaskEventType::PLAYING};
+        xQueueSend(this->event_queue_, &event, portMAX_DELAY);
     }
 }
 
@@ -625,30 +641,38 @@ void ESPADFSpeaker::stop() {
 }
 
 void ESPADFSpeaker::watch_() {
-  TaskEvent event;
-  if (xQueueReceive(this->event_queue_, &event, 0) == pdTRUE) {
-    switch (event.type) {
-      case TaskEventType::STARTING:
-      case TaskEventType::STOPPING:
-        break;
-      case TaskEventType::STARTED:
-        this->state_ = speaker::STATE_RUNNING;
-        break;
-      case TaskEventType::RUNNING:
-        this->status_clear_warning();
-        break;
-      case TaskEventType::STOPPED:
-        this->parent_->unlock();
-        this->state_ = speaker::STATE_STOPPED;
-        vTaskDelete(this->player_task_handle_);
-        this->player_task_handle_ = nullptr;
-        break;
-      case TaskEventType::WARNING:
-        ESP_LOGW(TAG, "Error writing to pipeline: %s", esp_err_to_name(event.err));
-        this->status_set_warning();
-        break;
+    TaskEvent event;
+    if (xQueueReceive(this->event_queue_, &event, 0) == pdTRUE) {
+        switch (event.type) {
+            case TaskEventType::STARTING:
+            case TaskEventType::STOPPING:
+                break;
+            case TaskEventType::STARTED:
+                this->state_ = speaker::STATE_RUNNING;
+                break;
+            case TaskEventType::RUNNING:
+                this->status_clear_warning();
+                break;
+            case TaskEventType::PLAYING:
+                // Handle playing state
+                this->state_ = speaker::STATE_PLAYING;
+                break;
+            case TaskEventType::PAUSED:
+                // Handle paused state
+                this->state_ = speaker::STATE_PAUSED;
+                break;
+            case TaskEventType::STOPPED:
+                this->parent_->unlock();
+                this->state_ = speaker::STATE_STOPPED;
+                vTaskDelete(this->player_task_handle_);
+                this->player_task_handle_ = nullptr;
+                break;
+            case TaskEventType::WARNING:
+                ESP_LOGW(TAG, "Error writing to pipeline: %s", esp_err_to_name(event.err));
+                this->status_set_warning();
+                break;
+        }
     }
-  }
 }
 
 void ESPADFSpeaker::loop() {
