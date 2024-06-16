@@ -42,6 +42,10 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
   // Declare a sensor for volume level
   sensor::Sensor *volume_sensor = nullptr;
 
+  // Method to initialize pipeline and cleanup
+  void initialize_audio_pipeline();
+  void cleanup_audio_pipeline();
+
   // Declare methods for media/http streaming
   void handle_mode_button();
   void play_url(const std::string &url); 
