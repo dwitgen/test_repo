@@ -14,8 +14,6 @@ enum class TaskEventType : uint8_t {
   STARTING = 0,
   STARTED,
   RUNNING,
-  PLAYING,
-  PAUSED,
   STOPPING,
   STOPPED,
   WARNING = 255,
