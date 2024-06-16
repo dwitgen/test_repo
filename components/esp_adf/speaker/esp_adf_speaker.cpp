@@ -655,8 +655,8 @@ void ESPADFSpeaker::watch_() {
       case TaskEventType::RUNNING:
         this->status_clear_warning();
         break;
-			case TaskEventType::STOPPED:
-				this->parent_->unlock();
+      case TaskEventType::STOPPED:
+        this->parent_->unlock();
         this->state_ = speaker::STATE_STOPPED;
         vTaskDelete(this->player_task_handle_);
         this->player_task_handle_ = nullptr;
@@ -665,11 +665,9 @@ void ESPADFSpeaker::watch_() {
         ESP_LOGW(TAG, "Error writing to pipeline: %s", esp_err_to_name(event.err));
         this->status_set_warning();
         break;
-		 
     }
   }
 }
-
 void ESPADFSpeaker::loop() {
    this->watch_();
 
