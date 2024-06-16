@@ -221,7 +221,7 @@ void ESPADFSpeaker::handle_mode_button() {
 	} else {
 		ESP_LOGI(TAG, "State is stopping");
 		this->cleanup_audio_pipeline();
-		//this->stop();
+		this->stop();
 			
 	} 
 }
