@@ -295,13 +295,13 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         return;
     }
 
-    //ESP_LOGI(TAG, "Register resample filter");
-    //if (audio_pipeline_register(this->pipeline_, this->http_filter_, "filter") != ESP_OK) {
-    //    ESP_LOGE(TAG, "Failed to register resample filter");
-    //    audio_pipeline_deinit(this->pipeline_);
-    //    this->pipeline_ = nullptr;
-    //    return;
-    //}
+    ESP_LOGI(TAG, "Register resample filter");
+    if (audio_pipeline_register(this->pipeline_, this->http_filter_, "filter") != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to register resample filter");
+        audio_pipeline_deinit(this->pipeline_);
+        this->pipeline_ = nullptr;
+        return;
+    }
 
     ESP_LOGI(TAG, "Register I2S stream writer");
     if (audio_pipeline_register(this->pipeline_, this->i2s_stream_writer_http_, "i2s") != ESP_OK) {
@@ -318,8 +318,8 @@ void ESPADFSpeaker::play_url(const std::string &url) {
 
     // Link the pipeline elements
     ESP_LOGI(TAG, "Link elements in pipeline");
-    const char *link_tag[4] = {"http", "mp3", "i2s"}; //"filter", "i2s"};
-    if (audio_pipeline_link(this->pipeline_, &link_tag[0], 3) != ESP_OK) {
+    const char *link_tag[4] = {"http", "mp3", "filter", "i2s"};
+    if (audio_pipeline_link(this->pipeline_, &link_tag[0], 4) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to link pipeline elements");
         audio_pipeline_deinit(this->pipeline_);
         this->pipeline_ = nullptr;
