@@ -85,6 +85,42 @@ void ESPADFSpeaker::volume_down() {
     int current_volume = this->get_current_volume();
     this->set_volume(current_volume - 10);
 }
+void ESPADFSpeaker::initialize_audio_pipeline() {
+    esp_err_t ret;
+    
+    // Initial memory check
+    check_heap_memory("Before initializing resample filter");
+    
+    // Initialize resample filter for HTTP stream
+    ret = configure_resample_filter(&this->http_filter_);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Error initializing resample filter: %s", esp_err_to_name(ret));
+        return;
+    }
+    // Check memory after initializing resample filter
+    check_heap_memory("After initializing resample filter");
+
+    // Initialize I2S stream writer for HTTP
+    ret = configure_i2s_stream_writer_http(&this->i2s_stream_writer_http_);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Error initializing I2S stream writer for HTTP: %s", esp_err_to_name(ret));
+        return;
+    }
+     // Check memory after initializing I2S stream writer for HTTP
+    check_heap_memory("After initializing I2S stream writer for HTTP");
+    
+    // Initialize I2S stream writer for raw (if needed)
+    ret = configure_i2s_stream_writer_raw(&this->i2s_stream_writer_raw_);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Error initializing I2S stream writer for raw: %s", esp_err_to_name(ret));
+        return;
+    }
+
+    // Check memory after initializing I2S stream writer for raw
+    check_heap_memory("After initializing I2S stream writer for raw");
+
+    ESP_LOGI(TAG, "Audio pipeline and elements initialized successfully");
+}
 
 void ESPADFSpeaker::setup() {
   ESP_LOGCONFIG(TAG, "Setting up ESP ADF Speaker...");
@@ -157,6 +193,9 @@ void ESPADFSpeaker::setup() {
   adc1_config_width(ADC_WIDTH_BIT);
   adc1_config_channel_atten((adc1_channel_t)but_channel, ADC_ATTEN);
 
+  // Initialize audio pipeline
+  this->initialize_audio_pipeline();
+
 }
 
 
@@ -169,22 +208,17 @@ void ESPADFSpeaker::handle_mode_button() {
 void ESPADFSpeaker::play_url(const std::string &url) {
     ESP_LOGI(TAG, "Attempting to play URL: %s", url.c_str());
     // Ensure the pipeline is stopped if already running
-    if (this->pipeline_ != nullptr) {
-        ESP_LOGI(TAG, "Stopping current audio pipeline");
+    // Cleanup the previous pipeline
+    this->cleanup_audio_pipeline();
 
-        // Directly attempt to stop and terminate the pipeline
-        audio_pipeline_stop(this->pipeline_);
-        audio_pipeline_wait_for_stop(this->pipeline_);
-        audio_pipeline_terminate(this->pipeline_);
-        audio_pipeline_unregister(this->pipeline_, this->i2s_stream_writer_);
-        audio_pipeline_unregister(this->pipeline_, this->filter_);
-        audio_pipeline_unregister(this->pipeline_, this->http_stream_reader_);
-        audio_pipeline_deinit(this->pipeline_);
-        this->pipeline_ = nullptr;
-    } else {
-        ESP_LOGI(TAG, "No existing audio pipeline to stop");
-    }
-
+    // Change HTTP Ring Buffer
+    // First, undefine the previous definition if it exists
+    #ifdef HTTP_STREAM_RINGBUFFER_SIZE
+    #undef HTTP_STREAM_RINGBUFFER_SIZE
+    #endif
+    
+    // Redefine it to the new value
+    #define HTTP_STREAM_RINGBUFFER_SIZE (12 * 1024)
      // Configure HTTP stream
     http_stream_cfg_t http_cfg = {
         .type = AUDIO_STREAM_READER,
@@ -193,7 +227,7 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         .task_core = HTTP_STREAM_TASK_CORE,
         .task_prio = HTTP_STREAM_TASK_PRIO,
         .stack_in_ext = false,
-        .event_handle = NULL, /*[](http_stream_event_msg_t *msg) -> int {
+        .event_handle = NULL, /* [](http_stream_event_msg_t *msg) -> int {
             ESP_LOGI(TAG, "HTTP event received: event_id=%d, buffer_len=%d", msg->event_id, msg->buffer_len);
             if (msg->event_id == HTTP_STREAM_ON_RESPONSE) {
                 audio_element_info_t music_info = {0};
@@ -212,17 +246,17 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         
     };
 
-    ESP_LOGI(TAG, "Passed Configure HTTP Stream");
+    ESP_LOGI(TAG, "Passed Configure HTTP Stream"); // Remove when done
 
     this->http_stream_reader_ = http_stream_init(&http_cfg);
     if (this->http_stream_reader_ == NULL) {
         ESP_LOGE(TAG, "Failed to initialize HTTP stream reader");
         return;
     }
-    ESP_LOGI(TAG, "HTTP stream reader init");
+    ESP_LOGI(TAG, "HTTP stream reader init"); // Remove when done
     
     audio_element_set_uri(this->http_stream_reader_, url.c_str());
-    ESP_LOGI(TAG, "HTTP set URI");
+    ESP_LOGI(TAG, "HTTP set URI"); // Remove when done
 
     // Initialize MP3 Decoder
     ESP_LOGI(TAG, "Create MP3 decoder to decode MP3 file");
@@ -233,32 +267,6 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         return;
     }
 
-    rsp_filter_cfg_t rsp_cfg = {
-            .src_rate = 44100,
-            .src_ch = 2,
-            .dest_rate = 44100,
-            .dest_bits = 16,
-            .dest_ch = 1,
-            .src_bits = 16,
-            .mode = RESAMPLE_DECODE_MODE,
-            .max_indata_bytes = RSP_FILTER_BUFFER_BYTE,
-            .out_len_bytes = RSP_FILTER_BUFFER_BYTE,
-            .type = ESP_RESAMPLE_TYPE_AUTO,
-            .complexity = 2,
-            .down_ch_idx = 0,
-            .prefer_flag = ESP_RSP_PREFER_TYPE_SPEED,
-            .out_rb_size = RSP_FILTER_RINGBUFFER_SIZE,
-            .task_stack = RSP_FILTER_TASK_STACK,
-            .task_core = RSP_FILTER_TASK_CORE,
-            .task_prio = RSP_FILTER_TASK_PRIO,
-            .stack_in_ext = true,
-        };
-    audio_element_handle_t filter = rsp_filter_init(&rsp_cfg);
-    if (filter == NULL) {
-        ESP_LOGE(TAG, "Failed to initialize resample filter");
-        return;
-    }
-         
     
     // Initialize a new audio pipeline for the URL stream
     audio_pipeline_cfg_t pipeline_cfg = {
@@ -269,93 +277,70 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         ESP_LOGE(TAG, "Failed to initialize audio pipeline");
         return;
     }
-    ESP_LOGI(TAG, "HTTP passed initilialize new audio pipeline");
+    ESP_LOGI(TAG, "HTTP passed initilialize new audio pipeline"); // Remove when done
 
-    // Ensure the I2S stream writer is initialized
-    if (this->i2s_stream_writer_ == nullptr) {
-        ESP_LOGI(TAG, "Initializing I2S stream writer");
-         // Initialize I2S stream
-    i2s_driver_config_t i2s_config = {
-        .mode = (i2s_mode_t) (I2S_MODE_MASTER | I2S_MODE_TX),
-        .sample_rate = 44100,  // Match the sample rate to your audio source
-        .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
-        .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
-        .communication_format = I2S_COMM_FORMAT_STAND_I2S,
-        .intr_alloc_flags = ESP_INTR_FLAG_LEVEL2 | ESP_INTR_FLAG_IRAM,
-        .dma_buf_count = 8,
-        .dma_buf_len = 1024,
-        .use_apll = false,
-        .tx_desc_auto_clear = true,
-        .fixed_mclk = 0,
-        .mclk_multiple = I2S_MCLK_MULTIPLE_256,
-        .bits_per_chan = I2S_BITS_PER_CHAN_DEFAULT,
-    };
+     
+    // Register the pipeline elements
+    ESP_LOGI(TAG, "Register all elements to audio pipeline"); // Remove when done
 
-    i2s_stream_cfg_t i2s_cfg = {
-        .type = AUDIO_STREAM_WRITER,
-        .i2s_config = i2s_config,
-        .i2s_port = I2S_NUM_0,
-        .use_alc = false,
-        .volume = 0,
-        .out_rb_size = I2S_STREAM_RINGBUFFER_SIZE,
-        .task_stack = I2S_STREAM_TASK_STACK,
-        .task_core = I2S_STREAM_TASK_CORE,
-        .task_prio = I2S_STREAM_TASK_PRIO,
-        .stack_in_ext = false,
-        .multi_out_num = 0,
-        .uninstall_drv = true,
-        .need_expand = false,
-        .expand_src_bits = I2S_BITS_PER_SAMPLE_16BIT,
-    };
-
-    this->i2s_stream_writer_ = i2s_stream_init(&i2s_cfg);
-    if (this->i2s_stream_writer_ == NULL) {
-        ESP_LOGE(TAG, "Failed to initialize I2S stream writer");
-        return;
-    }
-        ESP_LOGI(TAG, "I2S stream writer initialized");
-    }
-    
-    
-     // Register the pipeline elements
-    ESP_LOGI(TAG, "Register all elements to audio pipeline");
-    if (audio_pipeline_register(this->pipeline_, this->http_stream_reader_, "http") != ESP_OK ||
-        audio_pipeline_register(this->pipeline_, mp3_decoder, "mp3") != ESP_OK ||
-        audio_pipeline_register(this->pipeline_, filter, "filter") != ESP_OK ||
-        audio_pipeline_register(this->pipeline_, this->i2s_stream_writer_, "i2s") != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to register pipeline elements");
+    ESP_LOGI(TAG, "Register HTTP stream reader"); // Remove when done
+    if (audio_pipeline_register(this->pipeline_, this->http_stream_reader_, "http") != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to register HTTP stream reader");
         audio_pipeline_deinit(this->pipeline_);
         this->pipeline_ = nullptr;
         return;
     }
-    ESP_LOGI(TAG, "Registered HTTP stream reader in pipeline");
-    ESP_LOGI(TAG, "Registered MP3 decoder in pipeline");
-    ESP_LOGI(TAG, "Registered resample filter in pipeline");
-    ESP_LOGI(TAG, "Registered I2S stream writer in pipeline");
 
+    ESP_LOGI(TAG, "Register MP3 decoder"); // Remove when done
+    if (audio_pipeline_register(this->pipeline_, mp3_decoder, "mp3") != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to register MP3 decoder");
+        audio_pipeline_deinit(this->pipeline_);
+        this->pipeline_ = nullptr;
+        return;
+    }
+
+    ESP_LOGI(TAG, "Register resample filter"); // Remove when done
+    if (audio_pipeline_register(this->pipeline_, this->http_filter_, "filter") != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to register resample filter");
+        audio_pipeline_deinit(this->pipeline_);
+        this->pipeline_ = nullptr;
+        return;
+    }
+
+    ESP_LOGI(TAG, "Register I2S stream writer"); // Remove when done
+    if (audio_pipeline_register(this->pipeline_, this->i2s_stream_writer_http_, "i2s") != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to register I2S stream writer");
+        audio_pipeline_deinit(this->pipeline_);
+        this->pipeline_ = nullptr;
+        return;
+    }
+
+    
     // Link the pipeline elements
-    ESP_LOGI(TAG, "Link elements in pipeline");
-    const char *link_tag[4] = {"http", "mp3","filter", "i2s"};
+    ESP_LOGI(TAG, "Link elements in pipeline"); // Remove when done
+    const char *link_tag[4] = {"http", "mp3", "filter", "i2s"};
     if (audio_pipeline_link(this->pipeline_, &link_tag[0], 4) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to link pipeline elements");
         audio_pipeline_deinit(this->pipeline_);
         this->pipeline_ = nullptr;
         return;
     }
-    ESP_LOGI(TAG, "Linked pipeline elements");
+    ESP_LOGI(TAG, "Linked pipeline elements"); // Remove when done
 
      // Enable the PA
     gpio_set_level(PA_ENABLE_GPIO, 1);  // Enable PA
     ESP_LOGI(TAG, "PA enabled");
     
     // Start the audio pipeline
-    ESP_LOGI(TAG, "Starting new audio pipeline for URL");
+    ESP_LOGI(TAG, "Starting new audio pipeline for URL"); 
     if (audio_pipeline_run(this->pipeline_) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to run audio pipeline");
         audio_pipeline_deinit(this->pipeline_);
         this->pipeline_ = nullptr;
         return;
     }
+    this->state_ = STATE_RUNNING;
+								 
 }
 
 void ESPADFSpeaker::start() { this->state_ = speaker::STATE_STARTING; }
