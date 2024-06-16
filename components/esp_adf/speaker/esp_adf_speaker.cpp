@@ -228,7 +228,7 @@ void ESPADFSpeaker::handle_mode_button() {
 
 void ESPADFSpeaker::play_url(const std::string &url) {
 
-		 if (this->state_ == speaker::STATE_RUNNING || this->state_ == speaker::STATE_STARTING || || this->state_ == speaker::STATE_STARTED  ) {
+		 if (this->state_ == speaker::STATE_RUNNING || this->state_ == speaker::STATE_STARTING ) {
         ESP_LOGI(TAG, "Audio stream is already running, ignoring play request");
         return;
     }
