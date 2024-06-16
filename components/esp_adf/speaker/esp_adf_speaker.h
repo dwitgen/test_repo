@@ -27,8 +27,6 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
 
   void start() override;
   void stop() override;
-  void pause();
-  void play();
 
   size_t play(const uint8_t *data, size_t length) override;
 
@@ -41,18 +39,12 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
   // Declare a method to get the current volume from the device
   int get_current_volume();
 
-  // Method to initialize pipeline and cleanup
-  void initialize_audio_pipeline();
-  void cleanup_audio_pipeline();
-
   // Declare a sensor for volume level
   sensor::Sensor *volume_sensor = nullptr;
 
   // Declare methods for media/http streaming
   void handle_mode_button();
   void play_url(const std::string &url); 
-  void handle_rec_button();
-  
 
   protected:
   void start_();
@@ -71,18 +63,13 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
    bool is_http_stream_;
    audio_pipeline_handle_t pipeline_;
    audio_element_handle_t i2s_stream_writer_;
-   audio_element_handle_t i2s_stream_writer_http_;
-   audio_element_handle_t i2s_stream_writer_raw_;
    audio_element_handle_t filter_;
-   audio_element_handle_t http_filter_;
    audio_element_handle_t raw_write_;
    audio_element_handle_t http_stream_reader_;
-   
-   std::string current_url_;
-   ESPADFState state_{STATE_STOPPED};
 };
 
 }  // namespace esp_adf
 }  // namespace esphome
 
 #endif  // USE_ESP_IDF
+
