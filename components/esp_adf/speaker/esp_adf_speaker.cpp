@@ -277,7 +277,7 @@ void ESPADFSpeaker::play_url(const std::string &url) {
     ESP_LOGI(TAG, "Register all elements to audio pipeline");
     if (audio_pipeline_register(this->pipeline_, this->http_stream_reader_, "http") != ESP_OK ||
         audio_pipeline_register(this->pipeline_, mp3_decoder, "mp3") != ESP_OK ||
-        audio_pipeline_register(this->pipeline_, filter, "filter") != ESP_OK ||
+        audio_pipeline_register(this->pipeline_, filter_, "filter") != ESP_OK ||
         audio_pipeline_register(this->pipeline_, this->i2s_stream_writer_, "i2s") != ESP_OK) {
         ESP_LOGE(TAG, "Failed to register pipeline elements");
         audio_pipeline_deinit(this->pipeline_);
