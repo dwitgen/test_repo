@@ -20,6 +20,8 @@
 #include "audio_pipeline.h"
 #include "mp3_decoder.h"
 
+#include "esp_heap_caps.h"
+
 #ifdef USE_ESP_ADF_BOARD
 #include <board.h>
 #endif
@@ -33,6 +35,14 @@ static const char *const TAG = "esp_adf.speaker";
 // Define ADC configuration
 #define ADC_WIDTH_BIT    ADC_WIDTH_BIT_12
 #define ADC_ATTEN        ADC_ATTEN_DB_12
+
+// Change HTTP Ring Buffer
+#define HTTP_STREAM_RINGBUFFER_SIZE (12 * 1024)
+
+void check_heap_memory(const char* message) {
+    size_t free_heap_size = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    ESP_LOGI("Heap Memory Check", "%s - Free heap size: %d bytes", message, free_heap_size);
+}
 
 void ESPADFSpeaker::set_volume(int volume) {
     ESP_LOGI(TAG, "Setting volume to %d", volume);
@@ -88,13 +98,18 @@ void ESPADFSpeaker::volume_down() {
 
 void ESPADFSpeaker::initialize_audio_pipeline() {
     esp_err_t ret;
-
+    
+    // Initial memory check
+    check_heap_memory("Before initializing resample filter");
+    
     // Initialize resample filter for HTTP stream
     ret = configure_resample_filter(&this->http_filter_);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Error initializing resample filter: %s", esp_err_to_name(ret));
         return;
     }
+    // Check memory after initializing resample filter
+    check_heap_memory("After initializing resample filter");
 
     // Initialize I2S stream writer for HTTP
     ret = configure_i2s_stream_writer_http(&this->i2s_stream_writer_http_);
@@ -102,13 +117,18 @@ void ESPADFSpeaker::initialize_audio_pipeline() {
         ESP_LOGE(TAG, "Error initializing I2S stream writer for HTTP: %s", esp_err_to_name(ret));
         return;
     }
-
+     // Check memory after initializing I2S stream writer for HTTP
+    check_heap_memory("After initializing I2S stream writer for HTTP");
+    
     // Initialize I2S stream writer for raw (if needed)
     ret = configure_i2s_stream_writer_raw(&this->i2s_stream_writer_raw_);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Error initializing I2S stream writer for raw: %s", esp_err_to_name(ret));
         return;
     }
+
+    // Check memory after initializing I2S stream writer for raw
+    check_heap_memory("After initializing I2S stream writer for raw");
 
     ESP_LOGI(TAG, "Audio pipeline and elements initialized successfully");
 }
@@ -218,7 +238,7 @@ void ESPADFSpeaker::play_url(const std::string &url) {
      // Configure HTTP stream
     http_stream_cfg_t http_cfg = {
         .type = AUDIO_STREAM_READER,
-        .out_rb_size = 8 * 1024, //HTTP_STREAM_RINGBUFFER_SIZE,
+        .out_rb_size = HTTP_STREAM_RINGBUFFER_SIZE,
         .task_stack = HTTP_STREAM_TASK_STACK,
         .task_core = HTTP_STREAM_TASK_CORE,
         .task_prio = HTTP_STREAM_TASK_PRIO,
