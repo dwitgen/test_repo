@@ -215,7 +215,7 @@ void ESPADFSpeaker::setup() {
 
 void ESPADFSpeaker::handle_mode_button() {
   //#define curren_url_ "http://streaming.tdiradio.com:8000/house.mp3"
-	if (this->state_ != speaker::STATE_RUNNING && this->state_ != speaker::STATE_STARTING)) {
+	if (this->state_ != speaker::STATE_RUNNING && this->state_ != speaker::STATE_STARTING) {
 		this->play_url("http://streaming.tdiradio.com:8000/house.mp3");
 	} else  {
 		ESP_LOGI(TAG, "State is stoping");
