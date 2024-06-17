@@ -1,2 +1,11 @@
-idf_component_register(SRCS "media_player.cpp" 
+# Edit following two lines to set component requirements (see docs)
+set(COMPONENT_REQUIRES)
+set(COMPONENT_PRIV_REQUIRES audio_sal audio_hal esp_dispatcher esp_peripherals display_service)
+
+idf_component_register(SRCS "media_player.cpp"
                        INCLUDE_DIRS ".")
+
+register_component()
+
+idf_component_get_property(media_player_lib media_player COMPONENT_LIB)
+set_property(TARGET ${media_player_lib} APPEND PROPERTY INTERFACE_LINK_LIBRARIES ${COMPONENT_LIB})
