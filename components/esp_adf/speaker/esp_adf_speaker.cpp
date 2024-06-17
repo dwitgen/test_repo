@@ -487,8 +487,8 @@ void ESPADFSpeaker::player_task(void *params) {
   audio_element_handle_t raw_write = raw_stream_init(&raw_cfg);
 
   audio_pipeline_register(pipeline, raw_write, "raw");
-  //audio_pipeline_register(pipeline, filter, "filter");
-  audio_pipeline_register(pipeline, i2s_stream_writer_raw_, "i2s");
+  audio_pipeline_register(pipeline, this_speaker->filter, "filter");
+  audio_pipeline_register(pipeline, this_speaker->i2s_stream_writer_raw_, "i2s");
 
   const char *link_tag[3] = {
       "raw",
@@ -552,13 +552,13 @@ void ESPADFSpeaker::player_task(void *params) {
   event.type = TaskEventType::STOPPING;
   xQueueSend(this_speaker->event_queue_, &event, portMAX_DELAY);
 
-  audio_pipeline_unregister(pipeline, i2s_stream_writer_raw_);
-  audio_pipeline_unregister(pipeline, filter);
+  audio_pipeline_unregister(pipeline, this_speaker->i2s_stream_writer_raw_);
+  audio_pipeline_unregister(pipeline, this_speaker->filter_);
   audio_pipeline_unregister(pipeline, raw_write);
 
   audio_pipeline_deinit(pipeline);
-  audio_element_deinit(i2s_stream_writer_raw_);
-  audio_element_deinit(filter);
+  audio_element_deinit(this_speaker->i2s_stream_writer_raw_);
+  audio_element_deinit(this_speaker->filter_);
   audio_element_deinit(raw_write);
 
   event.type = TaskEventType::STOPPED;
