@@ -155,12 +155,22 @@ void ESPADFMicrophone::read_task(void *params) {
   };
   audio_element_handle_t raw_read = raw_stream_init(&raw_cfg);
 
+   // Algorithm stream configuration
+  algorithm_stream_cfg_t algo_cfg = ALGORITHM_STREAM_CFG_DEFAULT();
+  algo_cfg.input_type = ALGORITHM_STREAM_INPUT_TYPE1; // Configure according to your needs
+  audio_element_handle_t algo_stream = algorithm_stream_init(&algo_cfg);
+  if (algo_stream == NULL) {
+    ESP_LOGE(TAG, "Failed to create algorithm stream");
+    return;
+  }
+
   audio_pipeline_register(pipeline, i2s_stream_reader, "i2s");
   audio_pipeline_register(pipeline, filter, "filter");
+  audio_pipeline_register(pipeline, algo_stream, "algo_stream"); 
   audio_pipeline_register(pipeline, raw_read, "raw");
 
-  const char *link_tag[3] = {"i2s", "filter", "raw"};
-  audio_pipeline_link(pipeline, &link_tag[0], 3);
+  const char *link_tag[4] = {"i2s", "filter", "algo_stream", "raw"};
+  audio_pipeline_link(pipeline, &link_tag[0], 4);
 
   audio_pipeline_run(pipeline);
 
@@ -207,13 +217,13 @@ void ESPADFMicrophone::read_task(void *params) {
 
   audio_pipeline_unregister(pipeline, i2s_stream_reader);
   audio_pipeline_unregister(pipeline, filter);
-  // audio_pipeline_unregister(pipeline, algo_stream);
+  audio_pipeline_unregister(pipeline, algo_stream);
   audio_pipeline_unregister(pipeline, raw_read);
 
   audio_pipeline_deinit(pipeline);
   audio_element_deinit(i2s_stream_reader);
   audio_element_deinit(filter);
-  // audio_element_deinit(algo_stream);
+  audio_element_deinit(algo_stream);
   audio_element_deinit(raw_read);
 
   event.type = TaskEventType::STOPPED;
