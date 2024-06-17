@@ -515,7 +515,10 @@ void ESPADFSpeaker::player_task(void *params) {
 
         audio_pipeline_run(this_speaker->pipeline_);
     } else {
-	cleanup_audio_pipeline();
+	if (this_speaker->is_http_stream_) {
+            this_speaker->cleanup_audio_pipeline();
+            this_speaker->is_http_stream_ = false;
+        }
         // Raw Stream Configuration
         raw_stream_cfg_t raw_cfg = {
             .type = AUDIO_STREAM_WRITER,
