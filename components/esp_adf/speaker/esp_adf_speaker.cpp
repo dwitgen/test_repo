@@ -216,6 +216,7 @@ void ESPADFSpeaker::setup() {
 void ESPADFSpeaker::handle_mode_button() {
   //#define curren_url_ "http://streaming.tdiradio.com:8000/house.mp3"
 	if (this->state_ != speaker::STATE_RUNNING && this->state_ != speaker::STATE_STARTING) {
+		this->is_http_stream_ = true;
 		ESP_LOGI(TAG, "Mode button, speaker stopped");
 		this->play_url("http://streaming.tdiradio.com:8000/house.mp3");
 	} else {
@@ -514,6 +515,7 @@ void ESPADFSpeaker::player_task(void *params) {
 
         audio_pipeline_run(this_speaker->pipeline_);
     } else {
+	this->cleanup_audio_pipeline();
         // Raw Stream Configuration
         raw_stream_cfg_t raw_cfg = {
             .type = AUDIO_STREAM_WRITER,
