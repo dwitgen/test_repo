@@ -17,8 +17,8 @@
 #include <recorder_sr.h>
 
 
-//#include "esp_heap_caps.h"
-#include "memory_utils.h"
+#include "esp_heap_caps.h"
+//#include "memory_utils.h"
 
 #include <board.h>
 
@@ -28,10 +28,10 @@ namespace esp_adf {
 static const char *const TAG = "esp_adf.microphone";
 
 // Usewd for testing and can be removed if desired.
-/*void check_heap_memory(const char* message) {
+void check_heap_memory(const char* message) {
     size_t free_heap_size = heap_caps_get_free_size(MALLOC_CAP_8BIT);
     ESP_LOGI("Heap Memory Check", "%s - Free heap size: %d bytes", message, free_heap_size);
-}*/
+}
 
 void ESPADFMicrophone::setup() {
   ESP_LOGCONFIG(TAG, "Setting up ESP ADF Microphone...");
@@ -165,7 +165,7 @@ void ESPADFMicrophone::read_task(void *params) {
   };
   audio_element_handle_t raw_read = raw_stream_init(&raw_cfg);
   // Check memory after initializing resample filter
-    esphome::esp_adf::check_heap_memory("After initializing resample filter");
+    check_heap_memory("After initializing resample filter");
    // Algorithm stream configuration
   algorithm_stream_cfg_t algo_cfg = ALGORITHM_STREAM_CFG_DEFAULT();
   algo_cfg.input_type = ALGORITHM_STREAM_INPUT_TYPE1; // Configure according to your needs
@@ -175,7 +175,7 @@ void ESPADFMicrophone::read_task(void *params) {
     return;
   }
   // Check memory after initializing resample filter
-    esphome::esp_adf::check_heap_memory("After initializing algo stream");
+    check_heap_memory("After initializing algo stream");
 
   audio_pipeline_register(pipeline, i2s_stream_reader, "i2s");
   audio_pipeline_register(pipeline, filter, "filter");
