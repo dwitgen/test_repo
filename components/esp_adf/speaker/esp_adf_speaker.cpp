@@ -216,7 +216,7 @@ void ESPADFSpeaker::setup() {
 void ESPADFSpeaker::handle_mode_button() {
   //#define curren_url_ "http://streaming.tdiradio.com:8000/house.mp3"
 	if (this->state_ != speaker::STATE_RUNNING && this->state_ != speaker::STATE_STARTING) {
-		this->is_http_stream_ = true;
+		//this->is_http_stream_ = true;
 		ESP_LOGI(TAG, "Mode button, speaker stopped");
 		this->play_url("http://streaming.tdiradio.com:8000/house.mp3");
 	} else {
@@ -462,7 +462,7 @@ void ESPADFSpeaker::player_task(void *params) {
 
 
   // Determine if HTTP stream or raw stream
-    /*if (this_speaker->is_http_stream_) {
+    if (this_speaker->is_http_stream_) {
         // HTTP Stream Configuration
         http_stream_cfg_t http_cfg = HTTP_STREAM_CFG_DEFAULT();
         http_cfg.type = AUDIO_STREAM_READER;
@@ -514,11 +514,11 @@ void ESPADFSpeaker::player_task(void *params) {
         audio_pipeline_link(this_speaker->pipeline_, &link_tag_http[0], 3);
 
         audio_pipeline_run(this_speaker->pipeline_);
-    } else {*/
-	if (this_speaker->is_http_stream_) {
+    } else {
+	//if (this_speaker->is_http_stream_) {
             this_speaker->cleanup_audio_pipeline();
-            this_speaker->is_http_stream_ = false;
-        }
+            //this_speaker->is_http_stream_ = false;
+        //}
         // Raw Stream Configuration
         raw_stream_cfg_t raw_cfg = {
             .type = AUDIO_STREAM_WRITER,
@@ -541,7 +541,7 @@ void ESPADFSpeaker::player_task(void *params) {
         audio_pipeline_link(this_speaker->pipeline_, &link_tag_raw[0], 2);
 
         audio_pipeline_run(this_speaker->pipeline_);
-   / }
+   	}
   DataEvent data_event;
 
   event.type = TaskEventType::STARTED;
