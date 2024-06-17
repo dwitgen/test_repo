@@ -182,8 +182,8 @@ void ESPADFMicrophone::read_task(void *params) {
   audio_pipeline_register(pipeline, algo_stream, "algo_stream"); 
   audio_pipeline_register(pipeline, raw_read, "raw");
 
-  const char *link_tag[4] = {"i2s", "filter", "algo_stream", "raw"};
-  audio_pipeline_link(pipeline, &link_tag[0], 4);
+  const char *link_tag[4] = {"i2s", "filter", "raw"); / "algo_stream", "raw"};
+  audio_pipeline_link(pipeline, &link_tag[0], 3);
 
   audio_pipeline_run(pipeline);
 
