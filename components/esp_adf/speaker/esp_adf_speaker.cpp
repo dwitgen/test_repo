@@ -301,7 +301,7 @@ void ESPADFSpeaker::play_url(const std::string &url) {
     };
     this->pipeline_ = audio_pipeline_init(&pipeline_cfg);
     if (this->pipeline_ == NULL) {
-        ESP_LOGE(TAG, "Failed to initialize audio pipeline");
+        ESP_LOGE(TAG, "Failed to initialize http audio pipeline");
         return;
     }
     ESP_LOGI(TAG, "HTTP passed initilialize new audio pipeline"); // Remove when done
@@ -474,16 +474,26 @@ void ESPADFSpeaker::player_task(void *params) {
       .stack_in_ext = true,
   };
   audio_element_handle_t filter = rsp_filter_init(&rsp_cfg);*/
-
+	
+	// Initialize a new audio pipeline for the URL stream
+	audio_pipeline_cfg_t pipeline_cfg = {
+			.rb_size = 8 * 1024,
+	};
+	this->pipeline_ = audio_pipeline_init(&pipeline_cfg);
+	if (this->pipeline_ == NULL) {
+			ESP_LOGE(TAG, "Failed to initialize audio pipeline");
+			return;
+	}
+	
   raw_stream_cfg_t raw_cfg = {
       .type = AUDIO_STREAM_WRITER,
       .out_rb_size = 8 * 1024,
   };
   audio_element_handle_t raw_write = raw_stream_init(&raw_cfg);
 
-  audio_pipeline_register(pipeline, raw_write, "raw");
+  audio_pipeline_register(this->pipeline_, this->raw_write, "raw");
   //audio_pipeline_register(pipeline, filter, "filter");
-  audio_pipeline_register(pipeline, i2s_stream_writer_raw_, "i2s");
+  audio_pipeline_register(this->pipeline_, this->i2s_stream_writer_raw_, "i2s");
 
   const char *link_tag[3] = {
       "raw",
