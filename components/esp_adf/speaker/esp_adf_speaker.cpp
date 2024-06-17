@@ -381,9 +381,37 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         this->pipeline_ = nullptr;
         return;
     }
-  
-    						 
 }
+
+void ESPADFSpeaker::play_media(const std::string &url) {
+  this->play_url(url);
+}
+
+void ESPADFSpeaker::media_play() {
+  if (this->state_ == speaker::STATE_PAUSED) {
+    audio_pipeline_resume(this->pipeline_);
+    this->state_ = speaker::STATE_RUNNING;
+  }
+}
+
+void ESPADFSpeaker::media_pause() {
+  if (this->state_ == speaker::STATE_RUNNING) {
+    audio_pipeline_pause(this->pipeline_);
+    this->state_ = speaker::STATE_PAUSED;
+  }
+}
+
+void ESPADFSpeaker::media_stop() {
+  if (this->state_ != speaker::STATE_STOPPED) {
+    this->cleanup_audio_pipeline();
+    this->state_ = speaker::STATE_STOPPED;
+  }
+}
+
+void ESPADFSpeaker::media_seek(uint32_t position) {
+  // Seeking is not implemented in this example, but you could implement it if your pipeline supports it.
+}
+
 
 void ESPADFSpeaker::cleanup_audio_pipeline() {
     if (this->pipeline_ != nullptr) {
