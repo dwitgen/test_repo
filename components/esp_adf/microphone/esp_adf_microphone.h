@@ -6,6 +6,7 @@
 
 #include "esphome/core/component.h"
 #include "esphome/core/ring_buffer.h"
+#include "algorithm_stream.h"
 
 #include "esphome/components/microphone/microphone.h"
 
