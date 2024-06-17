@@ -383,7 +383,7 @@ void ESPADFSpeaker::play_url(const std::string &url) {
     }
 }
 
-void ESPADFSpeaker::play_media(const std::string &url) {
+void ESPADFSpeaker::media_play(const std::string &url) {
   this->play_url(url);
 }
 
