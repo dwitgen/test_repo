@@ -462,7 +462,7 @@ void ESPADFSpeaker::player_task(void *params) {
 
 
   // Determine if HTTP stream or raw stream
-    if (this_speaker->is_http_stream_) {
+    /*if (this_speaker->is_http_stream_) {
         // HTTP Stream Configuration
         http_stream_cfg_t http_cfg = HTTP_STREAM_CFG_DEFAULT();
         http_cfg.type = AUDIO_STREAM_READER;
@@ -514,9 +514,9 @@ void ESPADFSpeaker::player_task(void *params) {
         audio_pipeline_link(this_speaker->pipeline_, &link_tag_http[0], 3);
 
         audio_pipeline_run(this_speaker->pipeline_);
-    } else {
+    } else {*/
 	if (this_speaker->is_http_stream_) {
-            this->cleanup_audio_pipeline();
+            this_speaker->cleanup_audio_pipeline();
             this_speaker->is_http_stream_ = false;
         }
         // Raw Stream Configuration
@@ -541,7 +541,7 @@ void ESPADFSpeaker::player_task(void *params) {
         audio_pipeline_link(this_speaker->pipeline_, &link_tag_raw[0], 2);
 
         audio_pipeline_run(this_speaker->pipeline_);
-    }
+   / }
   DataEvent data_event;
 
   event.type = TaskEventType::STARTED;
