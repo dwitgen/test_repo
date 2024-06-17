@@ -383,8 +383,11 @@ void ESPADFSpeaker::play_url(const std::string &url) {
     }
 }
 
-void ESPADFSpeaker::media_play(const std::string &url) {
-  this->play_url(url);
+void ESPADFSpeaker::media_play() {
+  if (this->state_ == speaker::STATE_STOPPED ) { /* || this->state_ == speaker::STATE_PAUSED) { */
+    audio_pipeline_resume(this->pipeline_);
+    this->state_ = speaker::STATE_RUNNING;
+  }
 }
 
 void ESPADFSpeaker::media_pause() {
