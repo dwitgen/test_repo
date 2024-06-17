@@ -65,7 +65,7 @@ class ES8311Component : public Component, public i2c::I2CDevice {
   bool use_microphone_{false};
   ES8311MicGain microphone_gain_{ES8311_MIC_GAIN_42DB};
 
-  bool use_mclk_{true};          // true = use dedicated MCLK pin, false = use SCLK
+  bool use_mclk_{false};          // true = use dedicated MCLK pin, false = use SCLK
   bool sclk_inverted_{false};    // SCLK is inverted
   bool mclk_inverted_{false};    // MCLK is inverted (ignored if use_mclk_ == false)
   int mclk_frequency_{4096000};  // MCLK frequency (ignored if use_mclk_ == false)
