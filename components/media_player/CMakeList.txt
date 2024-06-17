@@ -1,2 +1,2 @@
-idf_component_register(SRCS "media_player.cpp" "esp_adf_source_file.cpp"
+idf_component_register(SRCS "media_player.cpp" 
                        INCLUDE_DIRS ".")
