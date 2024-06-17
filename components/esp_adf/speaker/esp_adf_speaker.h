@@ -49,12 +49,9 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
   // Declare methods for media/http streaming
   void handle_mode_button();
   void play_url(const std::string &url); 
-  void play_media(const std::string &url) override;
-  void media_play() override;
-  void media_pause() override;
-  void media_stop() override;
-  void media_seek(uint32_t position) override;
-  media_player::MediaPlayerTraits get_traits() override;
+  void media_play();
+  void media_pause();
+  void media_stop();
 
   protected:
   void start_();
