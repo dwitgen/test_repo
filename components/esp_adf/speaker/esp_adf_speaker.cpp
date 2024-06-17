@@ -21,6 +21,7 @@
 #include "mp3_decoder.h"
 
 //#include "esp_heap_caps.h"
+#include "memory_utils.h"
 
 #ifdef USE_ESP_ADF_BOARD
 #include <board.h>
