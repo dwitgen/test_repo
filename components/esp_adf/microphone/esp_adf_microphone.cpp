@@ -16,6 +16,8 @@
 #include <raw_stream.h>
 #include <recorder_sr.h>
 
+#include "audio_event_iface.h"
+
 #include <board.h>
 
 namespace esphome {
