@@ -475,15 +475,10 @@ void ESPADFSpeaker::player_task(void *params) {
   };
   audio_element_handle_t filter = rsp_filter_init(&rsp_cfg);*/
 	
-	// Initialize a new audio pipeline for the URL stream
 	audio_pipeline_cfg_t pipeline_cfg = {
-			.rb_size = 8 * 1024,
-	};
-	this->pipeline_ = audio_pipeline_init(&pipeline_cfg);
-	if (this->pipeline_ == NULL) {
-			ESP_LOGE(TAG, "Failed to initialize audio pipeline");
-			return;
-	}
+      .rb_size = 8 * 1024,
+  };
+  audio_pipeline_handle_t pipeline = audio_pipeline_init(&pipeline_cfg);
 	
   raw_stream_cfg_t raw_cfg = {
       .type = AUDIO_STREAM_WRITER,
@@ -491,9 +486,9 @@ void ESPADFSpeaker::player_task(void *params) {
   };
   audio_element_handle_t raw_write = raw_stream_init(&raw_cfg);
 
-  audio_pipeline_register(this->pipeline_, this->raw_write, "raw");
+  audio_pipeline_register(pipeline, raw_write, "raw");
   //audio_pipeline_register(pipeline, filter, "filter");
-  audio_pipeline_register(this->pipeline_, this->i2s_stream_writer_raw_, "i2s");
+  audio_pipeline_register(pipeline, i2s_stream_writer_raw_, "i2s");
 
   const char *link_tag[3] = {
       "raw",
@@ -557,12 +552,12 @@ void ESPADFSpeaker::player_task(void *params) {
   event.type = TaskEventType::STOPPING;
   xQueueSend(this_speaker->event_queue_, &event, portMAX_DELAY);
 
-  audio_pipeline_unregister(pipeline, i2s_stream_writer);
+  audio_pipeline_unregister(pipeline, i2s_stream_writer_raw_);
   audio_pipeline_unregister(pipeline, filter);
   audio_pipeline_unregister(pipeline, raw_write);
 
   audio_pipeline_deinit(pipeline);
-  audio_element_deinit(i2s_stream_writer);
+  audio_element_deinit(i2s_stream_writer_raw_);
   audio_element_deinit(filter);
   audio_element_deinit(raw_write);
 
