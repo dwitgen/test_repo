@@ -160,7 +160,7 @@ void ESPADFMicrophone::read_task(void *params) {
    // Algorithm stream configuration
   algorithm_stream_cfg_t algo_cfg = ALGORITHM_STREAM_CFG_DEFAULT();
   algo_cfg.input_type = ALGORITHM_STREAM_INPUT_TYPE1; // Configure according to your needs
-  audio_element_handle_t algo_stream = algorithm_stream_init(&algo_cfg);
+  audio_element_handle_t algo_stream = algo_stream_init(&algo_cfg);
   if (algo_stream == NULL) {
     ESP_LOGE(TAG, "Failed to create algorithm stream");
     return;
