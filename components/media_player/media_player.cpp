@@ -1,118 +1,88 @@
 #include "media_player.h"
-
 #include "esphome/core/log.h"
 
 namespace esphome {
 namespace media_player {
 
-static const char *const TAG = "media_player";
+static const char *TAG = "media_player";
 
-const char *media_player_state_to_string(MediaPlayerState state) {
-  switch (state) {
-    case MEDIA_PLAYER_STATE_IDLE:
-      return "IDLE";
-    case MEDIA_PLAYER_STATE_PLAYING:
-      return "PLAYING";
-    case MEDIA_PLAYER_STATE_PAUSED:
-      return "PAUSED";
-    case MEDIA_PLAYER_STATE_NONE:
-    default:
-      return "UNKNOWN";
-  }
+void MediaPlayer::setup() {
+  ESP_LOGCONFIG(TAG, "Setting up media player...");
+  // Perform any initial setup here
+  this->publish_state();
 }
 
-const char *media_player_command_to_string(MediaPlayerCommand command) {
-  switch (command) {
-    case MEDIA_PLAYER_COMMAND_PLAY:
-      return "PLAY";
-    case MEDIA_PLAYER_COMMAND_PAUSE:
-      return "PAUSE";
-    case MEDIA_PLAYER_COMMAND_STOP:
-      return "STOP";
-    case MEDIA_PLAYER_COMMAND_MUTE:
-      return "MUTE";
-    case MEDIA_PLAYER_COMMAND_UNMUTE:
-      return "UNMUTE";
-    case MEDIA_PLAYER_COMMAND_TOGGLE:
-      return "TOGGLE";
-    default:
-      return "UNKNOWN";
-  }
+void MediaPlayer::loop() {
+  // Example loop function
+  ESP_LOGD(TAG, "Media player loop running...");
+
+  // Placeholder: Check and update playback status
+  // This is where you could add code to monitor the playback status and update it if necessary
+
+  // Placeholder: Handle volume changes
+  // This is where you could add code to monitor and handle volume changes
+
+  // Placeholder: Respond to user input or other real-time events
+  // Add code here to respond to any other events or inputs as needed
+
+  // Example: Publish the current state periodically
+  this->publish_state();
 }
 
-void MediaPlayerCall::validate_() {
-  if (this->media_url_.has_value()) {
-    if (this->command_.has_value()) {
-      ESP_LOGW(TAG, "MediaPlayerCall: Setting both command and media_url is not needed.");
-      this->command_.reset();
-    }
-  }
-  if (this->volume_.has_value()) {
-    if (this->volume_.value() < 0.0f || this->volume_.value() > 1.0f) {
-      ESP_LOGW(TAG, "MediaPlayerCall: Volume must be between 0.0 and 1.0.");
-      this->volume_.reset();
-    }
-  }
+void MediaPlayer::dump_config() {
+  ESP_LOGCONFIG(TAG, "Media Player:");
+  ESP_LOGCONFIG(TAG, "  Media URL: %s", this->media_url_.c_str());
+  ESP_LOGCONFIG(TAG, "  Volume: %f", this->volume_);
+  ESP_LOGCONFIG(TAG, "  Muted: %s", this->muted_ ? "YES" : "NO");
 }
 
-void MediaPlayerCall::perform() {
-  ESP_LOGD(TAG, "'%s' - Setting", this->parent_->get_name().c_str());
-  this->validate_();
-  if (this->command_.has_value()) {
-    const char *command_s = media_player_command_to_string(this->command_.value());
-    ESP_LOGD(TAG, "  Command: %s", command_s);
-  }
-  if (this->media_url_.has_value()) {
-    ESP_LOGD(TAG, "  Media URL: %s", this->media_url_.value().c_str());
-  }
-  if (this->volume_.has_value()) {
-    ESP_LOGD(TAG, "  Volume: %.2f", this->volume_.value());
-  }
-  this->parent_->control(*this);
-}
-
-MediaPlayerCall &MediaPlayerCall::set_command(MediaPlayerCommand command) {
-  this->command_ = command;
-  return *this;
-}
-MediaPlayerCall &MediaPlayerCall::set_command(optional<MediaPlayerCommand> command) {
-  this->command_ = command;
-  return *this;
-}
-MediaPlayerCall &MediaPlayerCall::set_command(const std::string &command) {
-  if (str_equals_case_insensitive(command, "PLAY")) {
-    this->set_command(MEDIA_PLAYER_COMMAND_PLAY);
-  } else if (str_equals_case_insensitive(command, "PAUSE")) {
-    this->set_command(MEDIA_PLAYER_COMMAND_PAUSE);
-  } else if (str_equals_case_insensitive(command, "STOP")) {
-    this->set_command(MEDIA_PLAYER_COMMAND_STOP);
-  } else if (str_equals_case_insensitive(command, "MUTE")) {
-    this->set_command(MEDIA_PLAYER_COMMAND_MUTE);
-  } else if (str_equals_case_insensitive(command, "UNMUTE")) {
-    this->set_command(MEDIA_PLAYER_COMMAND_UNMUTE);
-  } else if (str_equals_case_insensitive(command, "TOGGLE")) {
-    this->set_command(MEDIA_PLAYER_COMMAND_TOGGLE);
-  } else {
-    ESP_LOGW(TAG, "'%s' - Unrecognized command %s", this->parent_->get_name().c_str(), command.c_str());
-  }
-  return *this;
-}
-
-MediaPlayerCall &MediaPlayerCall::set_media_url(const std::string &media_url) {
+void MediaPlayer::set_media_url(const std::string &media_url) {
   this->media_url_ = media_url;
-  return *this;
 }
 
-MediaPlayerCall &MediaPlayerCall::set_volume(float volume) {
-  this->volume_ = volume;
-  return *this;
+void MediaPlayer::play_url(const std::string &url) {
+  this->set_media_url(url);
+  this->play();
 }
 
-void MediaPlayer::add_on_state_callback(std::function<void()> &&callback) {
-  this->state_callback_.add(std::move(callback));
+void MediaPlayer::play() {
+  ESP_LOGD(TAG, "Playing media...");
+  // Add code to start playing media here
+  this->publish_state();
 }
 
-void MediaPlayer::publish_state() { this->state_callback_.call(); }
+void MediaPlayer::stop() {
+  ESP_LOGD(TAG, "Stopping media...");
+  // Add code to stop playing media here
+  this->publish_state();
+}
+
+void MediaPlayer::pause() {
+  ESP_LOGD(TAG, "Pausing media...");
+  // Add code to pause playing media here
+  this->publish_state();
+}
+
+void MediaPlayer::volume_up() {
+  this->set_volume(this->volume_ + 0.1);
+}
+
+void MediaPlayer::volume_down() {
+  this->set_volume(this->volume_ - 0.1);
+}
+
+void MediaPlayer::set_volume(int volume) {
+  this->volume_ = static_cast<float>(volume) / 100.0f;
+}
+
+void MediaPlayer::set_mute(bool mute) {
+  this->muted_ = mute;
+}
+
+void MediaPlayer::publish_state() {
+  ESP_LOGD(TAG, "Publishing state...");
+  // Publish state to Home Assistant
+}
 
 }  // namespace media_player
 }  // namespace esphome
