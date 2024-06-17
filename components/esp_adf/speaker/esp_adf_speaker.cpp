@@ -487,7 +487,7 @@ void ESPADFSpeaker::player_task(void *params) {
   audio_element_handle_t raw_write = raw_stream_init(&raw_cfg);
 
   audio_pipeline_register(pipeline, raw_write, "raw");
-  audio_pipeline_register(pipeline, this_speaker->filter, "filter");
+  audio_pipeline_register(pipeline, this_speaker->filter_, "filter");
   audio_pipeline_register(pipeline, this_speaker->i2s_stream_writer_raw_, "i2s");
 
   const char *link_tag[3] = {
