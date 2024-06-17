@@ -21,7 +21,7 @@
 #include "mp3_decoder.h"
 
 //#include "esp_heap_caps.h"
-#include "memory_utils.h"
+
 
 #ifdef USE_ESP_ADF_BOARD
 #include <board.h>
@@ -98,7 +98,7 @@ void ESPADFSpeaker::initialize_audio_pipeline() {
     esp_err_t ret;
     
     // Initial memory check
-    esphome::esp_adf::check_heap_memory("Before initializing resample filter");
+    //check_heap_memory("Before initializing resample filter");
     
     // Initialize resample filter for HTTP stream
     ret = configure_resample_filter(&this->http_filter_);
@@ -107,7 +107,7 @@ void ESPADFSpeaker::initialize_audio_pipeline() {
         return;
     }
     // Check memory after initializing resample filter
-    esphome::esp_adf::check_heap_memory("After initializing resample filter");
+    //check_heap_memory("After initializing resample filter");
 
     // Initialize I2S stream writer for HTTP
     ret = configure_i2s_stream_writer_http(&this->i2s_stream_writer_http_);
@@ -116,7 +116,7 @@ void ESPADFSpeaker::initialize_audio_pipeline() {
         return;
     }
      // Check memory after initializing I2S stream writer for HTTP
-    esphome::esp_adf::check_heap_memory("After initializing I2S stream writer for HTTP");
+    //check_heap_memory("After initializing I2S stream writer for HTTP");
     
     // Initialize I2S stream writer for raw (if needed)
     ret = configure_i2s_stream_writer_raw(&this->i2s_stream_writer_raw_);
@@ -126,7 +126,7 @@ void ESPADFSpeaker::initialize_audio_pipeline() {
     }
 
     // Check memory after initializing I2S stream writer for raw
-    esphome::esp_adf::check_heap_memory("After initializing I2S stream writer for raw");
+    //check_heap_memory("After initializing I2S stream writer for raw");
 
     ESP_LOGI(TAG, "Audio pipeline and elements initialized successfully");
 }
