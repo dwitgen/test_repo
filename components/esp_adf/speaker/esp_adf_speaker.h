@@ -49,7 +49,7 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
   // Declare methods for media/http streaming
   void handle_mode_button();
   void play_url(const std::string &url); 
-  void media_play(const std::string &url);
+  void media_play();
   void media_pause();
   void media_stop();
 
