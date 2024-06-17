@@ -414,7 +414,7 @@ void ESPADFSpeaker::player_task(void *params) {
   event.type = TaskEventType::STARTING;
   xQueueSend(this_speaker->event_queue_, &event, portMAX_DELAY);
 
-  i2s_driver_config_t i2s_config = {
+  /*i2s_driver_config_t i2s_config = {
       .mode = (i2s_mode_t) (I2S_MODE_MASTER | I2S_MODE_TX),
       .sample_rate = 16000,
       .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
@@ -473,7 +473,7 @@ void ESPADFSpeaker::player_task(void *params) {
       .task_prio = RSP_FILTER_TASK_PRIO,
       .stack_in_ext = true,
   };
-  audio_element_handle_t filter = rsp_filter_init(&rsp_cfg);
+  audio_element_handle_t filter = rsp_filter_init(&rsp_cfg);*/
 
   raw_stream_cfg_t raw_cfg = {
       .type = AUDIO_STREAM_WRITER,
@@ -482,8 +482,8 @@ void ESPADFSpeaker::player_task(void *params) {
   audio_element_handle_t raw_write = raw_stream_init(&raw_cfg);
 
   audio_pipeline_register(pipeline, raw_write, "raw");
-  audio_pipeline_register(pipeline, filter, "filter");
-  audio_pipeline_register(pipeline, i2s_stream_writer, "i2s");
+  //audio_pipeline_register(pipeline, filter, "filter");
+  audio_pipeline_register(pipeline, i2s_stream_writer_raw_, "i2s");
 
   const char *link_tag[3] = {
       "raw",
