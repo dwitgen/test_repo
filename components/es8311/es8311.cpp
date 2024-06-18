@@ -121,6 +121,10 @@ const ES8311Coefficient *ES8311Component::get_coefficient(uint32_t mclk, uint32_
 
 void ES8311Component::configure_format_() {
   // Configure I2S mode and format
+  uint8_t reg00;
+  ES8311_READ_BYTE(ES8311_REG00_RESET, &reg00);
+  reg00 &= 0xBF;
+  ES8311_WRITE_BYTE(ES8311_REG00_RESET, reg00);
   uint8_t reg09;
   ES8311_READ_BYTE(ES8311_REG09_SDPIN, &reg09);
   reg09 &= 0x80; // Clear existing format bits
