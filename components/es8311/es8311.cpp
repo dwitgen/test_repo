@@ -67,13 +67,16 @@ void ES8311Component::configure_clock_() {
   ES8311_WRITE_BYTE(ES8311_REG01_CLK_MANAGER, reg01);
 
   // Set clock dividers and multipliers directly for 16kHz sample rate and 16-bit resolution
-  ES8311_WRITE_BYTE(ES8311_REG02_CLK_MANAGER, 0x20); // Example setting for clk divider and multiplier
-  ES8311_WRITE_BYTE(ES8311_REG03_CLK_MANAGER, 0x11); // Example setting for adc fsmode and osr
-  ES8311_WRITE_BYTE(ES8311_REG04_CLK_MANAGER, 0x40); // Example setting for dac osr
-  ES8311_WRITE_BYTE(ES8311_REG05_CLK_MANAGER, 0x00); // Example setting for clk divider
-  ES8311_WRITE_BYTE(ES8311_REG06_CLK_MANAGER, 0x20); // Example setting for bclk divider
-  ES8311_WRITE_BYTE(ES8311_REG07_CLK_MANAGER, 0x00); // Example setting for tri-state and lrck divider
-  ES8311_WRITE_BYTE(ES8311_REG08_CLK_MANAGER, 0x00); // Example setting for lrck divider
+  const ES8311Coefficient *coeff = get_coefficient(4096000, 16000);
+  if (coeff != nullptr) {
+    ES8311_WRITE_BYTE(ES8311_REG02_CLK_MANAGER, coeff->pre_div);
+    ES8311_WRITE_BYTE(ES8311_REG03_CLK_MANAGER, coeff->fs_mode);
+    ES8311_WRITE_BYTE(ES8311_REG04_CLK_MANAGER, coeff->dac_osr);
+    ES8311_WRITE_BYTE(ES8311_REG05_CLK_MANAGER, (coeff->adc_div << 4) | coeff->dac_div);
+    ES8311_WRITE_BYTE(ES8311_REG06_CLK_MANAGER, (this->sclk_inverted_ ? BIT(5) : 0) | coeff->bclk_div);
+    ES8311_WRITE_BYTE(ES8311_REG07_CLK_MANAGER, coeff->lrck_h);
+    ES8311_WRITE_BYTE(ES8311_REG08_CLK_MANAGER, coeff->lrck_l);
+  }
 
   ESP_LOGCONFIG(TAG, "ES8311 clock configured.");
 }
@@ -84,14 +87,14 @@ void ES8311Component::configure_format_() {
   uint8_t reg09;
   ES8311_READ_BYTE(ES8311_REG09_SDPIN, &reg09);
   reg09 &= 0x80; // Clear existing format bits
-  reg09 |= (1 << 4); // Set I2S format
+  reg09 |= (1 << 4); // Set I2S format (Standard I2S)
   ES8311_WRITE_BYTE(ES8311_REG09_SDPIN, reg09);
 
   // Configure sample rate to 16kHz (ADC)
   uint8_t reg0A;
   ES8311_READ_BYTE(ES8311_REG0A_SDPOUT, &reg0A);
   reg0A &= 0xF0; // Clear existing sample rate bits
-  reg0A |= 0x02; // Set sample rate to 16kHz
+  reg0A |= 0x02; // Set sample rate to 16kHz (Standard setting for 16kHz)
   ES8311_WRITE_BYTE(ES8311_REG0A_SDPOUT, reg0A);
 
   ESP_LOGCONFIG(TAG, "ES8311 format configured.");
@@ -165,6 +168,14 @@ void ES8311Component::set_mute(bool mute) {
   }
 
   ES8311_WRITE_BYTE(ES8311_REG31_DAC, reg31);
+}
+
+const ES8311Coefficient *ES8311Component::get_coefficient(uint32_t mclk, uint32_t rate) {
+  for (const auto &coefficient : ES8311_COEFFICIENTS) {
+    if (coefficient.mclk == mclk && coefficient.rate == rate)
+      return &coefficient;
+  }
+  return nullptr;
 }
 
 }  // namespace es8311
