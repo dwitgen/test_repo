@@ -135,10 +135,23 @@ void ES8311Component::configure_format_() {
   ES8311_WRITE_BYTE(ES8311_REG0A_SDPOUT, reg0a);
 
   // Set I2S interface mode, format, sample rate, and bit length
-  ES8311_WRITE_BYTE(ES8311_REG0B_I2S_FMT, 0x00); // Set mode to slave
-  ES8311_WRITE_BYTE(ES8311_REG0C_I2S_FMT, 0x00); // Set format to I2S
-  ES8311_WRITE_BYTE(ES8311_REG0D_I2S_FMT, 0x00); // Set sample rate to 16kHz
-  ES8311_WRITE_BYTE(ES8311_REG0E_I2S_FMT, 0x00); // Set bit length to 16 bits
+   uint8_t reg10;
+  ES8311_READ_BYTE(ES8311_REG10_FORMAT, &reg10);
+  reg10 &= 0x80; // Clear existing format bits
+  reg10 |= (1 << 4); // Set I2S format
+  ES8311_WRITE_BYTE(ES8311_REG10_FORMAT, reg10);
+
+  uint8_t reg11;
+  ES8311_READ_BYTE(ES8311_REG11_FORMAT, &reg11);
+  reg11 &= 0x80; // Clear existing sample rate bits
+  reg11 |= 0x02; // Set sample rate to 16kHz
+  ES8311_WRITE_BYTE(ES8311_REG11_FORMAT, reg11);
+
+  uint8_t reg12;
+  ES8311_READ_BYTE(ES8311_REG12_FORMAT, &reg12);
+  reg12 &= 0x80; // Clear existing bit length bits
+  reg12 |= 0x10; // Set bit length to 16 bits
+  ES8311_WRITE_BYTE(ES8311_REG12_FORMAT, reg12);
 }
 
 uint8_t ES8311Component::calculate_resolution_value(ES8311Resolution resolution) {
