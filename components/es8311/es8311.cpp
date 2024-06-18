@@ -121,37 +121,18 @@ const ES8311Coefficient *ES8311Component::get_coefficient(uint32_t mclk, uint32_
 
 void ES8311Component::configure_format_() {
   // Configure I2S mode and format
-  uint8_t reg00;
-  ES8311_READ_BYTE(ES8311_REG00_RESET, &reg00);
-  reg00 &= 0xBF;
-  ES8311_WRITE_BYTE(ES8311_REG00_RESET, reg00);
-
-  // Configure SDP in resolution
-  uint8_t reg09 = calculate_resolution_value(this->resolution_in_);
+  uint8_t reg09;
+  ES8311_READ_BYTE(ES8311_REG09_SDPIN, &reg09);
+  reg09 &= 0x80; // Clear existing format bits
+  reg09 |= (1 << 4); // Set I2S format
   ES8311_WRITE_BYTE(ES8311_REG09_SDPIN, reg09);
 
-  // Configure SDP out resolution
-  uint8_t reg0a = calculate_resolution_value(this->resolution_out_);
-  ES8311_WRITE_BYTE(ES8311_REG0A_SDPOUT, reg0a);
-
-  // Set I2S interface mode, format, sample rate, and bit length
-   uint8_t reg10;
-  ES8311_READ_BYTE(ES8311_REG10_FORMAT, &reg10);
-  reg10 &= 0x80; // Clear existing format bits
-  reg10 |= (1 << 4); // Set I2S format
-  ES8311_WRITE_BYTE(ES8311_REG10_FORMAT, reg10);
-
-  uint8_t reg11;
-  ES8311_READ_BYTE(ES8311_REG11_FORMAT, &reg11);
-  reg11 &= 0x80; // Clear existing sample rate bits
-  reg11 |= 0x02; // Set sample rate to 16kHz
-  ES8311_WRITE_BYTE(ES8311_REG11_FORMAT, reg11);
-
-  uint8_t reg12;
-  ES8311_READ_BYTE(ES8311_REG12_FORMAT, &reg12);
-  reg12 &= 0x80; // Clear existing bit length bits
-  reg12 |= 0x10; // Set bit length to 16 bits
-  ES8311_WRITE_BYTE(ES8311_REG12_FORMAT, reg12);
+  // Configure sample rate to 16kHz (ADC)
+  uint8_t reg0A;
+  ES8311_READ_BYTE(ES8311_REG0A_SDPOUT, &reg0A);
+  reg0A &= 0xF0; // Clear existing sample rate bits
+  reg0A |= 0x02; // Set sample rate to 16kHz
+  ES8311_WRITE_BYTE(ES8311_REG0A_SDPOUT, reg0A);
 }
 
 uint8_t ES8311Component::calculate_resolution_value(ES8311Resolution resolution) {
