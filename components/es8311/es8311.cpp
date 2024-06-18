@@ -47,78 +47,21 @@ void ES8311Component::setup() {
 void ES8311Component::configure_clock_() {
   // Register 0x01: select clock source for internal MCLK and determine its frequency
   uint8_t reg01 = 0x3F;  // Enable all clocks
-  //if (!this->use_mclk_) {
-    reg01 |= BIT(7);  // Use SCLK
-    //this->mclk_frequency_ = this->sample_frequency_ * (int) this->resolution_out_ * 2;
-  //}
+  reg01 |= BIT(7);       // Use SCLK instead of MCLK
   if (this->mclk_inverted_) {
     reg01 |= BIT(6);  // Invert MCLK pin
   }
   ES8311_WRITE_BYTE(ES8311_REG01_CLK_MANAGER, reg01);
 
-  // Get clock coefficients from coefficient table
-  auto *coefficient = get_coefficient(this->mclk_frequency_, this->sample_frequency_);
-  if (coefficient == nullptr) {
-    ESP_LOGE(TAG, "Unable to configure sample rate %dHz with %dHz MCLK", this->sample_frequency_,
-             this->mclk_frequency_);
-    this->mark_failed();
-    return;
-  }
-
-  // Register 0x02
-  uint8_t reg02;
-  ES8311_READ_BYTE(ES8311_REG02_CLK_MANAGER, &reg02);
-  reg02 &= 0x07;
-  reg02 |= (coefficient->pre_div - 1) << 5;
-  reg02 |= coefficient->pre_mult << 3;
-  ES8311_WRITE_BYTE(ES8311_REG02_CLK_MANAGER, reg02);
-
-  // Register 0x03
-  const uint8_t reg03 = (coefficient->fs_mode << 6) | coefficient->adc_osr;
-  ES8311_WRITE_BYTE(ES8311_REG03_CLK_MANAGER, reg03);
-
-  // Register 0x04
-  ES8311_WRITE_BYTE(ES8311_REG04_CLK_MANAGER, coefficient->dac_osr);
-
-  // Register 0x05
-  const uint8_t reg05 = ((coefficient->adc_div - 1) << 4) | (coefficient->dac_div - 1);
-  ES8311_WRITE_BYTE(ES8311_REG05_CLK_MANAGER, reg05);
-
-  // Register 0x06
-  uint8_t reg06;
-  ES8311_READ_BYTE(ES8311_REG06_CLK_MANAGER, &reg06);
-  if (this->sclk_inverted_) {
-    reg06 |= BIT(5);
-  } else {
-    reg06 &= ~BIT(5);
-  }
-  reg06 &= 0xE0;
-  if (coefficient->bclk_div < 19) {
-    reg06 |= (coefficient->bclk_div - 1) << 0;
-  } else {
-    reg06 |= (coefficient->bclk_div) << 0;
-  }
-  ES8311_WRITE_BYTE(ES8311_REG06_CLK_MANAGER, reg06);
-
-  // Register 0x07
-  uint8_t reg07;
-  ES8311_READ_BYTE(ES8311_REG07_CLK_MANAGER, &reg07);
-  reg07 &= 0xC0;
-  reg07 |= coefficient->lrck_h << 0;
-  ES8311_WRITE_BYTE(ES8311_REG07_CLK_MANAGER, reg07);
-
-  // Register 0x08
-  ES8311_WRITE_BYTE(ES8311_REG08_CLK_MANAGER, coefficient->lrck_l);
+  // Set clock dividers and multipliers directly for 16kHz sample rate and 16-bit resolution
+  ES8311_WRITE_BYTE(ES8311_REG02_CLK_MANAGER, 0x20); // Example setting for clk divider and multiplier
+  ES8311_WRITE_BYTE(ES8311_REG03_CLK_MANAGER, 0x11); // Example setting for adc fsmode and osr
+  ES8311_WRITE_BYTE(ES8311_REG04_CLK_MANAGER, 0x40); // Example setting for dac osr
+  ES8311_WRITE_BYTE(ES8311_REG05_CLK_MANAGER, 0x00); // Example setting for clk divider
+  ES8311_WRITE_BYTE(ES8311_REG06_CLK_MANAGER, 0x20); // Example setting for bclk divider
+  ES8311_WRITE_BYTE(ES8311_REG07_CLK_MANAGER, 0x00); // Example setting for tri-state and lrck divider
+  ES8311_WRITE_BYTE(ES8311_REG08_CLK_MANAGER, 0x00); // Example setting for lrck divider
 }
-
-const ES8311Coefficient *ES8311Component::get_coefficient(uint32_t mclk, uint32_t rate) {
-  for (const auto &coefficient : ES8311_COEFFICIENTS) {
-    if (coefficient.mclk == mclk && coefficient.rate == rate)
-      return &coefficient;
-  }
-  return nullptr;
-}
-
 void ES8311Component::configure_format_() {
   // Configure I2S mode and format
   uint8_t reg00;
