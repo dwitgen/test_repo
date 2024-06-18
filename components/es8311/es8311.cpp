@@ -133,6 +133,12 @@ void ES8311Component::configure_format_() {
   // Configure SDP out resolution
   uint8_t reg0a = calculate_resolution_value(this->resolution_out_);
   ES8311_WRITE_BYTE(ES8311_REG0A_SDPOUT, reg0a);
+
+  // Set I2S interface mode, format, sample rate, and bit length
+  ES8311_WRITE_BYTE(ES8311_REG0B_I2S_FMT, 0x00); // Set mode to slave
+  ES8311_WRITE_BYTE(ES8311_REG0C_I2S_FMT, 0x00); // Set format to I2S
+  ES8311_WRITE_BYTE(ES8311_REG0D_I2S_FMT, 0x00); // Set sample rate to 16kHz
+  ES8311_WRITE_BYTE(ES8311_REG0E_I2S_FMT, 0x00); // Set bit length to 16 bits
 }
 
 uint8_t ES8311Component::calculate_resolution_value(ES8311Resolution resolution) {
