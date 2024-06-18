@@ -47,10 +47,10 @@ void ES8311Component::setup() {
 void ES8311Component::configure_clock_() {
   // Register 0x01: select clock source for internal MCLK and determine its frequency
   uint8_t reg01 = 0x3F;  // Enable all clocks
-  if (!this->use_mclk_) {
+  //if (!this->use_mclk_) {
     reg01 |= BIT(7);  // Use SCLK
-    this->mclk_frequency_ = this->sample_frequency_ * (int) this->resolution_out_ * 2;
-  }
+    //this->mclk_frequency_ = this->sample_frequency_ * (int) this->resolution_out_ * 2;
+  //}
   if (this->mclk_inverted_) {
     reg01 |= BIT(6);  // Invert MCLK pin
   }
