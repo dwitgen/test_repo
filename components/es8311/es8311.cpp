@@ -11,6 +11,7 @@ static const char *const TAG = "es8311";
 #define ES8311_ERROR_CHECK(func) \
   if (!(func)) { \
     this->mark_failed(); \
+    ESP_LOGE(TAG, "Operation failed at: " #func); \
     return; \
   }
 #define ES8311_READ_BYTE(reg, value) ES8311_ERROR_CHECK(this->read_byte(reg, value));
@@ -20,6 +21,7 @@ void ES8311Component::setup() {
   ESP_LOGCONFIG(TAG, "Setting up ES8311...");
 
   // Reset
+  ESP_LOGCONFIG(TAG, "Resetting ES8311...");
   ES8311_WRITE_BYTE(ES8311_REG00_RESET, 0x1F);
   delay(20);
   ES8311_WRITE_BYTE(ES8311_REG00_RESET, 0x00);
@@ -28,6 +30,12 @@ void ES8311Component::setup() {
   this->configure_clock_();
   this->configure_format_();
 
+  // Check if any operation has failed during configuration
+  if (this->is_failed()) {
+    ESP_LOGCONFIG(TAG, "  Failed to initialize!");
+    return;
+  }
+
   // Set initial volume
   this->set_volume(0.75);  // 0.75 = 0xBF = 0dB
 
@@ -35,6 +43,7 @@ void ES8311Component::setup() {
   this->configure_microphone_();
 
   // Power up
+  ESP_LOGCONFIG(TAG, "Powering up ES8311...");
   ES8311_WRITE_BYTE(ES8311_REG0D_SYSTEM, 0x01);  // Power up analog circuitry
   ES8311_WRITE_BYTE(ES8311_REG0E_SYSTEM, 0x02);  // Enable analog PGA, enable ADC modulator
   ES8311_WRITE_BYTE(ES8311_REG12_SYSTEM, 0x00);  // Power up DAC
@@ -42,11 +51,15 @@ void ES8311Component::setup() {
   ES8311_WRITE_BYTE(ES8311_REG1C_ADC, 0x6A);     // ADC Equalizer bypass, cancel DC offset in digital domain
   ES8311_WRITE_BYTE(ES8311_REG37_DAC, 0x08);     // Bypass DAC equalizer
   ES8311_WRITE_BYTE(ES8311_REG00_RESET, 0x80);   // Power On
+
+  ESP_LOGCONFIG(TAG, "ES8311 setup complete.");
 }
 
 void ES8311Component::configure_clock_() {
+  ESP_LOGCONFIG(TAG, "Configuring ES8311 clock...");
+  
   // Register 0x01: select clock source for internal MCLK and determine its frequency
-  uint8_t reg01 = 0x3F;  // Enable all clocks
+  uint8_t reg01 = 0x3F;  // Enable all clocks, set for slave mode
   reg01 |= BIT(7);       // Use SCLK instead of MCLK
   if (this->mclk_inverted_) {
     reg01 |= BIT(6);  // Invert MCLK pin
@@ -61,13 +74,13 @@ void ES8311Component::configure_clock_() {
   ES8311_WRITE_BYTE(ES8311_REG06_CLK_MANAGER, 0x20); // Example setting for bclk divider
   ES8311_WRITE_BYTE(ES8311_REG07_CLK_MANAGER, 0x00); // Example setting for tri-state and lrck divider
   ES8311_WRITE_BYTE(ES8311_REG08_CLK_MANAGER, 0x00); // Example setting for lrck divider
+
+  ESP_LOGCONFIG(TAG, "ES8311 clock configured.");
 }
+
 void ES8311Component::configure_format_() {
+  ESP_LOGCONFIG(TAG, "Configuring ES8311 format...");
   // Configure I2S mode and format
-  uint8_t reg00;
-  ES8311_READ_BYTE(ES8311_REG00_RESET, &reg00);
-  reg00 &= 0xBF;
-  ES8311_WRITE_BYTE(ES8311_REG00_RESET, reg00);
   uint8_t reg09;
   ES8311_READ_BYTE(ES8311_REG09_SDPIN, &reg09);
   reg09 &= 0x80; // Clear existing format bits
@@ -80,6 +93,8 @@ void ES8311Component::configure_format_() {
   reg0A &= 0xF0; // Clear existing sample rate bits
   reg0A |= 0x02; // Set sample rate to 16kHz
   ES8311_WRITE_BYTE(ES8311_REG0A_SDPOUT, reg0A);
+
+  ESP_LOGCONFIG(TAG, "ES8311 format configured.");
 }
 
 uint8_t ES8311Component::calculate_resolution_value(ES8311Resolution resolution) {
