@@ -78,11 +78,11 @@ void I2SAudioSpeaker::player_task(void *params) {
       .mclk_multiple = I2S_MCLK_MULTIPLE_256,
       .bits_per_chan = I2S_BITS_PER_CHAN_DEFAULT,
   };
-#if SOC_I2S_SUPPORTS_DAC
-  if (this_speaker->internal_dac_mode_ != I2S_DAC_CHANNEL_DISABLE) {
+//#if SOC_I2S_SUPPORTS_DAC
+  //if (this_speaker->internal_dac_mode_ != I2S_DAC_CHANNEL_DISABLE) {
     config.mode = (i2s_mode_t) (config.mode | I2S_MODE_DAC_BUILT_IN);
-  }
-#endif
+  //}
+//#endif
 
   esp_err_t err = i2s_driver_install(this_speaker->parent_->get_port(), &config, 0, nullptr);
   if (err != ESP_OK) {
