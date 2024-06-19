@@ -20,6 +20,8 @@
 #include "audio_pipeline.h"
 #include "mp3_decoder.h"
 
+#include <esp_event.h>
+
 #ifdef USE_ESP_ADF_BOARD
 #include <board.h>
 #endif
@@ -180,9 +182,11 @@ void ESPADFSpeaker::setup() {
     this->initialize_audio_pipeline();
 
     esp_periph_set_handle_t set = esp_periph_set_init(NULL);
+    periph_adc_button_cfg_t adc_btn_cfg = PERIPH_ADC_BUTTON_DEFAULT_CONFIG();
     esp_periph_handle_t adc_btn_handle = periph_adc_button_init(&adc_btn_cfg);  // Ensure adc_btn_handle is initialized
     audio_board_key_init(set);
-    esp_event_handler_register(PERIPH_ID_ADC_BTN, ESP_EVENT_ANY_ID, ESPADFSpeaker::button_event_handler, this);
+    esp_event_handler_register(ESP_EVENT_ANY_BASE, ESP_EVENT_ANY_ID, ESPADFSpeaker::button_event_handler, this);
+    //esp_event_handler_register(PERIPH_ID_ADC_BTN, ESP_EVENT_ANY_ID, ESPADFSpeaker::button_event_handler, this);
     esp_periph_start(set, adc_btn_handle);  // Updated function call
 }
 
