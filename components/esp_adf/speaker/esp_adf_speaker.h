@@ -14,6 +14,10 @@
 
 #include <audio_element.h>
 #include <audio_pipeline.h>
+#include <audio_hal.h>
+#include <periph_adc_button.h>
+#include <board.h>
+
 
 namespace esphome {
 namespace esp_adf {
@@ -54,10 +58,12 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
   void media_stop();
 
   protected:
-  void start_();
-  void watch_();
-
-  static void player_task(void *params);
+   void start_();
+   void watch_();
+ 
+   static void player_task(void *params);
+   static void button_event_handler(void *handler_args, int32_t id, void *event_data);  // Updated event handler signature
+   void handle_button_event(int32_t id);
 
   TaskHandle_t player_task_handle_{nullptr};
   struct {
