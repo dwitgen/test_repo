@@ -19,6 +19,8 @@
 #include "esp_peripherals.h"
 #include "periph_adc_button.h"
 
+ESP_EVENT_DECLARE_BASE(ADC_BUTTON_EVENT_BASE);
+
 namespace esphome {
 namespace esp_adf {
 
