@@ -20,6 +20,10 @@
 #include "audio_pipeline.h"
 #include "mp3_decoder.h"
 
+#include "periph_adc_button.h"
+#include "esp_peripherals.h"
+#include "periph_button.h"
+
 //#include "esp_heap_caps.h"
 
 
@@ -43,6 +47,48 @@ static const char *const TAG = "esp_adf.speaker";
     ESP_LOGI("Heap Memory Check", "%s - Free heap size: %d bytes", message, free_heap_size);
 }*/
 
+void button_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data) {
+    uint32_t current_time = millis();
+    static uint32_t last_button_press[6] = {0};  // Array to store the last press time for each button
+    uint32_t debounce_time = 200;  // Default debounce time in milliseconds
+
+    if (id == BUTTON_MODE_ID) {
+        debounce_time = 500;  // Custom debounce time for mode button
+    }
+
+    if (current_time - last_button_press[id] > debounce_time) {
+        switch (id) {
+            case BUTTON_VOLUP_ID:
+                ESP_LOGI(TAG, "Volume up detected");
+                volume_up();
+                break;
+            case BUTTON_VOLDOWN_ID:
+                ESP_LOGI(TAG, "Volume down detected");
+                volume_down();
+                break;
+            case BUTTON_SET_ID:
+                ESP_LOGI(TAG, "Set button detected");
+                handle_set_button();
+                break;
+            case BUTTON_PLAY_ID:
+                ESP_LOGI(TAG, "Play button detected");
+                handle_play_button();
+                break;
+            case BUTTON_MODE_ID:
+                ESP_LOGI(TAG, "Mode button detected");
+                handle_mode_button();
+                break;
+            case BUTTON_REC_ID:
+                ESP_LOGI(TAG, "Record button detected");
+                handle_rec_button();
+                break;
+            default:
+                ESP_LOGW(TAG, "Unhandled button event id: %d", id);
+                break;
+        }
+        last_button_press[id] = current_time;
+    }
+}
 void ESPADFSpeaker::set_volume(int volume) {
     ESP_LOGI(TAG, "Setting volume to %d", volume);
     
@@ -140,6 +186,12 @@ void ESPADFSpeaker::setup() {
   int but_channel = INPUT_BUTOP_ID;
   #endif
 
+	 // Initialize peripherals and buttons
+	esp_periph_set_handle_t set = esp_periph_set_init(NULL);
+	ESP_ERROR_CHECK(audio_board_key_init(set));
+	esp_event_handler_register(PERIPH_ID_ADC_BTN, ESP_EVENT_ANY_ID, button_event_handler, NULL);
+	ESP_ERROR_CHECK(esp_periph_start(set));
+	
   gpio_config_t io_conf;
   io_conf.intr_type = GPIO_INTR_DISABLE;
   io_conf.mode = GPIO_MODE_OUTPUT;
@@ -696,7 +748,7 @@ void ESPADFSpeaker::loop() {
         return;
     }
 
-    //ESP_LOGD(TAG, "ADC value: %d", adc_value);
+    /*//ESP_LOGD(TAG, "ADC value: %d", adc_value);
     
     static uint32_t last_mode_button_press = 0;
     static uint32_t last_vol_up_button_press = 0;
@@ -722,7 +774,7 @@ void ESPADFSpeaker::loop() {
             this->handle_mode_button();
             last_mode_button_press = current_time;
         }
-    }
+    }*/
 }
 
 size_t ESPADFSpeaker::play(const uint8_t *data, size_t length) {
