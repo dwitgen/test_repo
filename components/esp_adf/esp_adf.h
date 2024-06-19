@@ -53,7 +53,8 @@ class ESPADF : public Component {
 
  protected:
   Mutex lock_;
-  void button_event_handler(void *handler_arg, esp_event_base_t base, int32_t id, void *event_data);
+  static void button_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data);
+  void handle_button_event(int32_t id);
 };
 
 }  // namespace esp_adf
