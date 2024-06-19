@@ -163,7 +163,7 @@ void ESPADFSpeaker::initialize_audio_pipeline() {
     //check_heap_memory("Before initializing resample filter");
     
     // Initialize resample filter for HTTP stream
-    ret = configure_resample_filter(&this->http_filter_);
+    ret = configure_resample_filter_http(&this->http_filter_);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Error initializing resample filter: %s", esp_err_to_name(ret));
         return;
