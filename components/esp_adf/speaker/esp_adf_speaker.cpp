@@ -176,8 +176,8 @@ void ESPADFSpeaker::setup() {
     int initial_volume = this->get_current_volume();
     this->set_volume(initial_volume);
 
-    adc1_config_width(ADC_WIDTH_BIT);
-    adc1_config_channel_atten((adc1_channel_t)but_channel, ADC_ATTEN);
+    //adc1_config_width(ADC_WIDTH_BIT);
+    //adc1_config_channel_atten((adc1_channel_t)but_channel, ADC_ATTEN);
 
     this->initialize_audio_pipeline();
 
