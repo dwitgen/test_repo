@@ -66,22 +66,22 @@ void button_event_handler(void *handler_args, esp_event_base_t base, int32_t id,
                 ESP_LOGI(TAG, "Volume down detected");
                 volume_down();
                 break;
-            case BUTTON_SET_ID:
+            /*case BUTTON_SET_ID:
                 ESP_LOGI(TAG, "Set button detected");
                 handle_set_button();
                 break;
             case BUTTON_PLAY_ID:
                 ESP_LOGI(TAG, "Play button detected");
                 handle_play_button();
-                break;
+                break;*/
             case BUTTON_MODE_ID:
                 ESP_LOGI(TAG, "Mode button detected");
                 handle_mode_button();
                 break;
-            case BUTTON_REC_ID:
+            /*case BUTTON_REC_ID:
                 ESP_LOGI(TAG, "Record button detected");
                 handle_rec_button();
-                break;
+                break;*/
             default:
                 ESP_LOGW(TAG, "Unhandled button event id: %d", id);
                 break;
