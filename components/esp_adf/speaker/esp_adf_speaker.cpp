@@ -119,6 +119,11 @@ void ESPADFSpeaker::handle_mode_button() {
 }
 
 void ESPADFSpeaker::button_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data) {
+    ESPADFSpeaker *instance = static_cast<ESPADFSpeaker*>(handler_args);
+    instance->handle_button_event(base, id, event_data);
+}
+
+void ESPADFSpeaker::handle_button_event(esp_event_base_t base, int32_t id, void *event_data) {
     uint32_t current_time = millis();
     static uint32_t last_button_press[6] = {0};  // Array to store the last press time for each button
     uint32_t debounce_time = 200;  // Default debounce time in milliseconds
@@ -131,28 +136,16 @@ void ESPADFSpeaker::button_event_handler(void *handler_args, esp_event_base_t ba
         switch (id) {
             case BUTTON_VOLUP_ID:
                 ESP_LOGI(TAG, "Volume up detected");
-                volume_up();
+                this->volume_up();
                 break;
             case BUTTON_VOLDOWN_ID:
                 ESP_LOGI(TAG, "Volume down detected");
-                volume_down();
+                this->volume_down();
                 break;
-            /*case BUTTON_SET_ID:
-                ESP_LOGI(TAG, "Set button detected");
-                handle_set_button();
-                break;
-            case BUTTON_PLAY_ID:
-                ESP_LOGI(TAG, "Play button detected");
-                handle_play_button();
-                break;*/
             case BUTTON_MODE_ID:
                 ESP_LOGI(TAG, "Mode button detected");
-                handle_mode_button();
+                this->handle_mode_button();
                 break;
-            /*case BUTTON_REC_ID:
-                ESP_LOGI(TAG, "Record button detected");
-                handle_rec_button();
-                break;*/
             default:
                 ESP_LOGW(TAG, "Unhandled button event id: %d", id);
                 break;
@@ -160,6 +153,7 @@ void ESPADFSpeaker::button_event_handler(void *handler_args, esp_event_base_t ba
         last_button_press[id] = current_time;
     }
 }
+
 void ESPADFSpeaker::initialize_audio_pipeline() {
     esp_err_t ret;
     
@@ -219,7 +213,7 @@ void ESPADFSpeaker::setup() {
 	ESP_ERROR_CHECK(audio_board_key_init(set));
 
 	// Register the button event handler
-	ESP_ERROR_CHECK(esp_event_handler_register(PERIPH_ID_ADC_BTN, ESP_EVENT_ANY_ID, button_event_handler, NULL));
+	ESP_ERROR_CHECK(esp_event_handler_register(PERIPH_ID_ADC_BTN, ESP_EVENT_ANY_ID, &ESPADFSpeaker::button_event_handler, this));
 
 	// Start the peripheral set
 	esp_periph_handle_t adc_btn_handle;  // Ensure adc_btn_handle is defined and initialized
