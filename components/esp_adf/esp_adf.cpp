@@ -15,6 +15,10 @@ namespace esp_adf {
 
 static const char *const TAG = "esp_adf";
 
+#ifndef ESP_EVENT_ANY_ID
+#define ESP_EVENT_ANY_ID -1
+#endif
+
 void ESPADF::setup() {
 #ifdef USE_ESP_ADF_BOARD
   ESP_LOGI(TAG, "Start codec chip");
