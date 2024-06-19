@@ -40,7 +40,9 @@ static const char *const TAG = "esp_adf.speaker";
 // Define ADC configuration
 #define ADC_WIDTH_BIT    ADC_WIDTH_BIT_12
 #define ADC_ATTEN        ADC_ATTEN_DB_12
+#ifndef ESP_EVENT_ANY_ID
 #define ESP_EVENT_ANY_ID -1
+#endif
 
 // Usewd for testing and can be removed if desired.
 /*void check_heap_memory(const char* message) {
@@ -203,11 +205,24 @@ void ESPADFSpeaker::setup() {
   int but_channel = INPUT_BUTOP_ID;
   #endif
 
-	// Initialize peripherals and buttons
+	/*// Initialize peripherals and buttons
 	esp_periph_set_handle_t set = esp_periph_set_init(NULL);
 	ESP_ERROR_CHECK(esp_periph_start(set, adc_btn_handle));
 	esp_event_handler_register(PERIPH_ID_ADC_BTN, ESP_EVENT_ANY_ID, button_event_handler, NULL);
-	ESP_ERROR_CHECK(esp_periph_start(set));
+	ESP_ERROR_CHECK(esp_periph_start(set));*/
+
+	// Initialize peripherals
+    esp_periph_set_handle_t set = esp_periph_set_init(NULL);
+
+    // Initialize buttons
+    esp_periph_handle_t adc_btn_handle;
+    ESP_ERROR_CHECK(audio_board_key_init(set, &adc_btn_handle)); // Ensure this function initializes adc_btn_handle correctly
+
+    // Register the button event handler
+    ESP_ERROR_CHECK(esp_event_handler_register(PERIPH_ID_ADC_BTN, ESP_EVENT_ANY_ID, &ESPADFSpeaker::button_event_handler, this));
+
+    // Start the peripheral set
+    ESP_ERROR_CHECK(esp_periph_start(set, adc_btn_handle));
 	
   gpio_config_t io_conf;
   io_conf.intr_type = GPIO_INTR_DISABLE;
