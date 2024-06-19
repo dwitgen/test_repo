@@ -25,7 +25,7 @@
 #include "esp_peripherals.h"
 #include "periph_button.h"
 
-//#include "esp_heap_caps.h"
+#include "esp_heap_caps.h"
 
 
 #ifdef USE_ESP_ADF_BOARD
