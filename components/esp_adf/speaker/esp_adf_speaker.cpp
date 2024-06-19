@@ -182,12 +182,22 @@ void ESPADFSpeaker::setup() {
     this->initialize_audio_pipeline();
 
     esp_periph_set_handle_t set = esp_periph_set_init(NULL);
-    periph_adc_button_cfg_t adc_btn_cfg = PERIPH_ADC_BUTTON_DEFAULT_CONFIG();
-    esp_periph_handle_t adc_btn_handle = periph_adc_button_init(&adc_btn_cfg);  // Ensure adc_btn_handle is initialized
+    periph_adc_button_cfg_t adc_btn_cfg = {
+        .adc_button_num = 0, // Adjust the initialization according to your configuration
+        .arr = NULL,
+        .arr_size = 0,
+        .task_cfg = {
+            .task_stack = 4096,
+            .task_prio = 5,
+            .task_core = 1,
+            .task_func = NULL,
+            .ext_stack = false,
+        }
+    };
+    esp_periph_handle_t adc_btn_handle = periph_adc_button_init(&adc_btn_cfg);
     audio_board_key_init(set);
-    esp_event_handler_register(ESP_EVENT_ANY_BASE, ESP_EVENT_ANY_ID, ESPADFSpeaker::button_event_handler, this);
-    //esp_event_handler_register(PERIPH_ID_ADC_BTN, ESP_EVENT_ANY_ID, ESPADFSpeaker::button_event_handler, this);
-    esp_periph_start(set, adc_btn_handle);  // Updated function call
+    esp_event_handler_register(PERIPH_ID_ADC_BTN, ESP_EVENT_ANY_ID, ESPADFSpeaker::button_event_handler, this);
+    esp_periph_start(set, adc_btn_handle);
 }
 
 void ESPADFSpeaker::button_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data) {
