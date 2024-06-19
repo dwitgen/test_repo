@@ -185,7 +185,7 @@ void ESPADFSpeaker::setup() {
     
     audio_board_key_init(set);
     esp_event_handler_register(ESP_EVENT_ANY_BASE, ESP_EVENT_ANY_ID, ESPADFSpeaker::button_event_handler, this);
-    esp_periph_start(set, adc_btn_handle);
+    //esp_periph_start(set, adc_btn_handle);
     
     
 }
