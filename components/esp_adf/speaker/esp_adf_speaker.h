@@ -38,6 +38,7 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
 
   // Declare methods for volume control
   static void button_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data);
+  void handle_button_event(esp_event_base_t base, int32_t id, void *event_data);
   void set_volume(int volume);
   void volume_up();
   void volume_down();
