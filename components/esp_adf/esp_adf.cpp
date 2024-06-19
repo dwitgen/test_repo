@@ -27,8 +27,9 @@ void ESPADF::setup() {
   audio_hal_ctrl_codec(board_handle->audio_hal, AUDIO_HAL_CODEC_MODE_BOTH, AUDIO_HAL_CTRL_START);
 
    // Initialize the peripheral set
-  //esp_periph_set_handle_t set = esp_periph_set_init(NULL);
-
+  esp_periph_config_t periph_cfg = DEFAULT_ESP_PERIPH_SET_CONFIG();
+  esp_periph_set_handle_t set = esp_periph_set_init(&periph_cfg);
+  
   // Initialize the audio board keys
   /*esp_err_t ret = audio_board_key_init(set);
   if (ret != ESP_OK) {
