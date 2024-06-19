@@ -20,19 +20,12 @@
 #include "audio_pipeline.h"
 #include "mp3_decoder.h"
 
-#include "esp_event.h"  
-#include "periph_adc_button.h"
-#include "esp_peripherals.h"
-#include "periph_button.h"
-
-#include "esp_heap_caps.h"
+//#include "esp_heap_caps.h"
 
 
 #ifdef USE_ESP_ADF_BOARD
 #include <board.h>
 #endif
-
-ESP_EVENT_DEFINE_BASE(ADC_BUTTON_EVENT_BASE);
 
 namespace esphome {
 namespace esp_adf {
@@ -43,9 +36,6 @@ static const char *const TAG = "esp_adf.speaker";
 // Define ADC configuration
 #define ADC_WIDTH_BIT    ADC_WIDTH_BIT_12
 #define ADC_ATTEN        ADC_ATTEN_DB_12
-#ifndef ESP_EVENT_ANY_ID
-#define ESP_EVENT_ANY_ID -1
-#endif
 
 // Usewd for testing and can be removed if desired.
 /*void check_heap_memory(const char* message) {
@@ -76,7 +66,6 @@ void ESPADFSpeaker::set_volume(int volume) {
       ESP_LOGE(TAG, "Volume sensor is not initialized");
     }
 }
-
 int ESPADFSpeaker::get_current_volume() {
   audio_board_handle_t board_handle = audio_board_init();
   if (board_handle == nullptr) {
@@ -105,57 +94,6 @@ void ESPADFSpeaker::volume_down() {
     int current_volume = this->get_current_volume();
     this->set_volume(current_volume - 10);
 }
-
-void ESPADFSpeaker::handle_mode_button() {
-  //#define curren_url_ "http://streaming.tdiradio.com:8000/house.mp3"
-	if (this->state_ != speaker::STATE_RUNNING && this->state_ != speaker::STATE_STARTING) {
-		//this->is_http_stream_ = true;
-		ESP_LOGI(TAG, "Mode button, speaker stopped");
-		this->play_url("http://streaming.tdiradio.com:8000/house.mp3");
-	} else {
-		ESP_LOGI(TAG, "State is stopping");
-		this->cleanup_audio_pipeline();
-		this->stop();
-			
-	} 
-}
-
-void ESPADFSpeaker::button_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data) {
-    ESPADFSpeaker *instance = static_cast<ESPADFSpeaker*>(handler_args);
-    instance->handle_button_event(base, id, event_data);
-}
-
-void ESPADFSpeaker::handle_button_event(esp_event_base_t base, int32_t id, void *event_data) {
-    uint32_t current_time = millis();
-    static uint32_t last_button_press[6] = {0};  // Array to store the last press time for each button
-    uint32_t debounce_time = 200;  // Default debounce time in milliseconds
-
-    if (id == BUTTON_MODE_ID) {
-        debounce_time = 500;  // Custom debounce time for mode button
-    }
-
-    if (current_time - last_button_press[id] > debounce_time) {
-        switch (id) {
-            case BUTTON_VOLUP_ID:
-                ESP_LOGI(TAG, "Volume up detected");
-                this->volume_up();
-                break;
-            case BUTTON_VOLDOWN_ID:
-                ESP_LOGI(TAG, "Volume down detected");
-                this->volume_down();
-                break;
-            case BUTTON_MODE_ID:
-                ESP_LOGI(TAG, "Mode button detected");
-                this->handle_mode_button();
-                break;
-            default:
-                ESP_LOGW(TAG, "Unhandled button event id: %d", id);
-                break;
-        }
-        last_button_press[id] = current_time;
-    }
-}
-
 void ESPADFSpeaker::initialize_audio_pipeline() {
     esp_err_t ret;
     
@@ -163,7 +101,7 @@ void ESPADFSpeaker::initialize_audio_pipeline() {
     //check_heap_memory("Before initializing resample filter");
     
     // Initialize resample filter for HTTP stream
-    ret = configure_resample_filter_http(&this->http_filter_);
+    ret = configure_resample_filter(&this->http_filter_);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Error initializing resample filter: %s", esp_err_to_name(ret));
         return;
@@ -202,25 +140,6 @@ void ESPADFSpeaker::setup() {
   int but_channel = INPUT_BUTOP_ID;
   #endif
 
-	/*// Initialize peripherals and buttons
-	esp_periph_set_handle_t set = esp_periph_set_init(NULL);
-	ESP_ERROR_CHECK(esp_periph_start(set, adc_btn_handle));
-	esp_event_handler_register(PERIPH_ID_ADC_BTN, ESP_EVENT_ANY_ID, button_event_handler, NULL);
-	ESP_ERROR_CHECK(esp_periph_start(set));*/
-
-// Initialize peripherals
-	esp_periph_set_handle_t set = esp_periph_set_init(NULL);
-
-	// Initialize buttons
-	ESP_ERROR_CHECK(audio_board_key_init(set));
-
-	// Register the button event handler
-	ESP_ERROR_CHECK(esp_event_handler_register(ADC_BUTTON_EVENT_BASE, ESP_EVENT_ANY_ID, &ESPADFSpeaker::button_event_handler, this));
-
-	// Start the peripheral set
-	esp_periph_handle_t adc_btn_handle;  // Ensure adc_btn_handle is defined and initialized
-	ESP_ERROR_CHECK(esp_periph_start(set, adc_btn_handle));
-	
   gpio_config_t io_conf;
   io_conf.intr_type = GPIO_INTR_DISABLE;
   io_conf.mode = GPIO_MODE_OUTPUT;
@@ -294,6 +213,20 @@ void ESPADFSpeaker::setup() {
     this->is_http_stream_ = true;
     this->play_url("http://streaming.tdiradio.com:8000/house.mp3");
 }*/
+
+void ESPADFSpeaker::handle_mode_button() {
+  //#define curren_url_ "http://streaming.tdiradio.com:8000/house.mp3"
+	if (this->state_ != speaker::STATE_RUNNING && this->state_ != speaker::STATE_STARTING) {
+		//this->is_http_stream_ = true;
+		ESP_LOGI(TAG, "Mode button, speaker stopped");
+		this->play_url("http://streaming.tdiradio.com:8000/house.mp3");
+	} else {
+		ESP_LOGI(TAG, "State is stopping");
+		this->cleanup_audio_pipeline();
+		this->stop();
+			
+	} 
+}
 
 void ESPADFSpeaker::play_url(const std::string &url) {
 
@@ -763,7 +696,7 @@ void ESPADFSpeaker::loop() {
         return;
     }
 
-    /*//ESP_LOGD(TAG, "ADC value: %d", adc_value);
+    //ESP_LOGD(TAG, "ADC value: %d", adc_value);
     
     static uint32_t last_mode_button_press = 0;
     static uint32_t last_vol_up_button_press = 0;
@@ -789,7 +722,7 @@ void ESPADFSpeaker::loop() {
             this->handle_mode_button();
             last_mode_button_press = current_time;
         }
-    }*/
+    }
 }
 
 size_t ESPADFSpeaker::play(const uint8_t *data, size_t length) {
@@ -823,4 +756,3 @@ bool ESPADFSpeaker::has_buffered_data() const { return uxQueueMessagesWaiting(th
 }  // namespace esphome
 
 #endif  // USE_ESP_IDF
-
