@@ -216,13 +216,14 @@ void ESPADFSpeaker::setup() {
     esp_periph_set_handle_t set = esp_periph_set_init(NULL);
 
     // Initialize buttons
-    esp_periph_handle_t adc_btn_handle;
-    ESP_ERROR_CHECK(audio_board_key_init(set, &adc_btn_handle)); // Ensure this function initializes adc_btn_handle correctly
+    ESP_ERROR_CHECK(audio_board_key_init(set));
 
     // Register the button event handler
-    ESP_ERROR_CHECK(esp_event_handler_register(PERIPH_ID_ADC_BTN, ESP_EVENT_ANY_ID, &ESPADFSpeaker::button_event_handler, this));
+    ESP_ERROR_CHECK(esp_event_handler_register(PERIPH_ID_ADC_BTN, ESP_EVENT_ANY_ID, button_event_handler, this));
 
     // Start the peripheral set
+    // Assuming adc_btn_handle is part of the initialization
+    esp_periph_handle_t adc_btn_handle;  // Ensure adc_btn_handle is defined and initialized
     ESP_ERROR_CHECK(esp_periph_start(set, adc_btn_handle));
 	
   gpio_config_t io_conf;
