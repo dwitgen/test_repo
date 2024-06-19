@@ -5,6 +5,7 @@
 
 #ifdef USE_ESP_ADF_BOARD
 #include <board.h>
+#include <periph_adc_button.h>
 #endif
 
 #include "esphome/core/log.h"
