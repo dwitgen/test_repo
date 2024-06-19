@@ -32,6 +32,8 @@
 #include <board.h>
 #endif
 
+ESP_EVENT_DEFINE_BASE(ADC_BUTTON_EVENT_BASE);
+
 namespace esphome {
 namespace esp_adf {
 
@@ -206,14 +208,14 @@ void ESPADFSpeaker::setup() {
 	esp_event_handler_register(PERIPH_ID_ADC_BTN, ESP_EVENT_ANY_ID, button_event_handler, NULL);
 	ESP_ERROR_CHECK(esp_periph_start(set));*/
 
-	// Initialize peripherals
+// Initialize peripherals
 	esp_periph_set_handle_t set = esp_periph_set_init(NULL);
 
 	// Initialize buttons
 	ESP_ERROR_CHECK(audio_board_key_init(set));
 
 	// Register the button event handler
-	ESP_ERROR_CHECK(esp_event_handler_register(PERIPH_ID_ADC_BTN, ESP_EVENT_ANY_ID, &ESPADFSpeaker::button_event_handler, this));
+	ESP_ERROR_CHECK(esp_event_handler_register(ADC_BUTTON_EVENT_BASE, ESP_EVENT_ANY_ID, &ESPADFSpeaker::button_event_handler, this));
 
 	// Start the peripheral set
 	esp_periph_handle_t adc_btn_handle;  // Ensure adc_btn_handle is defined and initialized
