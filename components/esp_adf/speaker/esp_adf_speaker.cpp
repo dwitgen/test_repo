@@ -180,12 +180,13 @@ void ESPADFSpeaker::setup() {
     this->initialize_audio_pipeline();
 
     esp_periph_set_handle_t set = esp_periph_set_init(NULL);
+    esp_periph_handle_t adc_btn_handle = periph_adc_button_init(&adc_btn_cfg);  // Ensure adc_btn_handle is initialized
     audio_board_key_init(set);
     esp_event_handler_register(PERIPH_ID_ADC_BTN, ESP_EVENT_ANY_ID, ESPADFSpeaker::button_event_handler, this);
-    esp_periph_start(set);
+    esp_periph_start(set, adc_btn_handle);  // Updated function call
 }
 
-void ESPADFSpeaker::button_event_handler(void *handler_args, int32_t id, void *event_data) {
+void ESPADFSpeaker::button_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data) {
     ESPADFSpeaker *instance = static_cast<ESPADFSpeaker*>(handler_args);
     instance->handle_button_event(id);
 }
