@@ -33,6 +33,7 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
   bool has_buffered_data() const override;
 
   // Declare methods for volume control
+  void button_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data);
   void set_volume(int volume);
   void volume_up();
   void volume_down();
