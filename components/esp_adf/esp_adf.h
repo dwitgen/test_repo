@@ -5,6 +5,9 @@
 #include "esphome/core/component.h"
 #include "esphome/core/helpers.h"
 
+#include <periph_adc_button.h>
+#include <esp_event.h>
+
 namespace esphome {
 namespace esp_adf {
 
