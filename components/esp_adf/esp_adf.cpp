@@ -30,11 +30,11 @@ void ESPADF::setup() {
   esp_periph_set_handle_t set = esp_periph_set_init(NULL);
 
   // Initialize the audio board keys
-  esp_err_t ret = audio_board_key_init(set);
+  /*esp_err_t ret = audio_board_key_init(set);
   if (ret != ESP_OK) {
     ESP_LOGE(TAG, "Failed to initialize audio board keys");
     return;
-  }
+  }*/
 
   // Register the button event handler
   ESP_LOGI(TAG, "Registering button event handler...");
