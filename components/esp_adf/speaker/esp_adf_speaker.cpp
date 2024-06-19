@@ -213,18 +213,17 @@ void ESPADFSpeaker::setup() {
 	ESP_ERROR_CHECK(esp_periph_start(set));*/
 
 	// Initialize peripherals
-    esp_periph_set_handle_t set = esp_periph_set_init(NULL);
+	esp_periph_set_handle_t set = esp_periph_set_init(NULL);
 
-    // Initialize buttons
-    ESP_ERROR_CHECK(audio_board_key_init(set));
+	// Initialize buttons
+	ESP_ERROR_CHECK(audio_board_key_init(set));
 
-    // Register the button event handler
-    ESP_ERROR_CHECK(esp_event_handler_register(PERIPH_ID_ADC_BTN, ESP_EVENT_ANY_ID, button_event_handler, this));
+	// Register the button event handler
+	ESP_ERROR_CHECK(esp_event_handler_register(PERIPH_ID_ADC_BTN, ESP_EVENT_ANY_ID, button_event_handler, NULL));
 
-    // Start the peripheral set
-    // Assuming adc_btn_handle is part of the initialization
-    esp_periph_handle_t adc_btn_handle;  // Ensure adc_btn_handle is defined and initialized
-    ESP_ERROR_CHECK(esp_periph_start(set, adc_btn_handle));
+	// Start the peripheral set
+	esp_periph_handle_t adc_btn_handle;  // Ensure adc_btn_handle is defined and initialized
+	ESP_ERROR_CHECK(esp_periph_start(set, adc_btn_handle));
 	
   gpio_config_t io_conf;
   io_conf.intr_type = GPIO_INTR_DISABLE;
