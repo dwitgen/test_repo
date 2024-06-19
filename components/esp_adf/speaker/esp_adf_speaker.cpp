@@ -197,7 +197,7 @@ void ESPADFSpeaker::setup() {
       return;
     }
 
-    init_event_queue();
+    //init_event_queue();
     
     // Initialize the audio board keys
     ESP_LOGI(TAG, "Initializing audio board keys...");
