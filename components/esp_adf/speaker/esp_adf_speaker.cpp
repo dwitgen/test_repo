@@ -22,7 +22,7 @@
 
 #include "periph_adc_button.h"
 #include "periph_button.h"
-#include <esp_event.h>
+//#include <esp_event.h>
 
 #ifdef USE_ESP_ADF_BOARD
 #include <board.h>
