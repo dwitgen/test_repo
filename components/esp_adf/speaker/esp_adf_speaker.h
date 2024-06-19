@@ -14,6 +14,8 @@
 
 #include <audio_element.h>
 #include <audio_pipeline.h>
+
+#include "esp_event.h" 
 #include "esp_peripherals.h"
 #include "periph_adc_button.h"
 
