@@ -183,13 +183,26 @@ void ESPADFSpeaker::setup() {
 
     this->initialize_audio_pipeline();
     
-     esp_periph_config_t periph_cfg = DEFAULT_ESP_PERIPH_SET_CONFIG();
-     esp_periph_set_handle_t set = esp_periph_set_init(&periph_cfg);
-    
-    audio_board_key_init(set);
-    esp_event_handler_register(ESP_EVENT_ANY_BASE, ESP_EVENT_ANY_ID, ESPADFSpeaker::button_event_handler, this);
-    //esp_periph_start(set, adc_btn_handle);
-    
+    // Initialize the peripheral set with increased queue size
+    ESP_LOGI(TAG, "Initializing peripheral set...");
+    esp_periph_config_t periph_cfg = DEFAULT_ESP_PERIPH_SET_CONFIG();
+    periph_cfg.task_stack = 4096;
+    periph_cfg.task_prio = 5;
+    periph_cfg.extern_queue_size = 10;
+    esp_periph_set_handle_t set = esp_periph_set_init(&periph_cfg);
+    if (!set) {
+      ESP_LOGE(TAG, "Failed to initialize peripheral set");
+      return;
+    }
+  
+    // Initialize the audio board keys
+    ESP_LOGI(TAG, "Initializing audio board keys...");
+    ret = audio_board_key_init(set);
+    if (ret != ESP_OK) {
+      ESP_LOGE(TAG, "Failed to initialize audio board keys: %s", esp_err_to_name(ret));
+      return;
+    }
+
     
 }
 
