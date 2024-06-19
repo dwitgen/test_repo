@@ -33,6 +33,10 @@ static const char *const TAG = "esp_adf.speaker";
 #define ADC_WIDTH_BIT    ADC_WIDTH_BIT_12
 #define ADC_ATTEN        ADC_ATTEN_DB_12
 
+#ifndef ESP_EVENT_ANY_ID
+#define ESP_EVENT_ANY_ID -1
+#endif
+
 void ESPADFSpeaker::set_volume(int volume) {
     ESP_LOGI(TAG, "Setting volume to %d", volume);
     
