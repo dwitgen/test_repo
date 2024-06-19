@@ -47,7 +47,74 @@ static const char *const TAG = "esp_adf.speaker";
     ESP_LOGI("Heap Memory Check", "%s - Free heap size: %d bytes", message, free_heap_size);
 }*/
 
-void button_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data) {
+void ESPADFSpeaker::set_volume(int volume) {
+    ESP_LOGI(TAG, "Setting volume to %d", volume);
+    
+    // Ensure the volume is within the range 0-100
+    if (volume < 0) volume = 0;
+    if (volume > 100) volume = 100;
+    this->volume_ = volume;
+
+    // Set volume using HAL
+    
+    audio_board_handle_t board_handle = audio_board_init();
+    esp_err_t err = audio_hal_set_volume(board_handle->audio_hal, volume);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Error setting volume: %s", esp_err_to_name(err));
+    }
+
+    // Update the volume sensor
+    if (this->volume_sensor != nullptr) {
+      this->volume_sensor->publish_state(this->volume_);
+    } else {
+      ESP_LOGE(TAG, "Volume sensor is not initialized");
+    }
+}
+
+int ESPADFSpeaker::get_current_volume() {
+  audio_board_handle_t board_handle = audio_board_init();
+  if (board_handle == nullptr) {
+    ESP_LOGE(TAG, "Failed to initialize audio board");
+    return 0;
+  }
+
+  int current_volume = 0;
+  esp_err_t read_err = audio_hal_get_volume(board_handle->audio_hal, &current_volume);
+  if (read_err == ESP_OK) {
+    ESP_LOGI(TAG, "Current device volume: %d", current_volume);
+  } else {
+    ESP_LOGE(TAG, "Error reading current volume: %s", esp_err_to_name(read_err));
+  }
+
+  return current_volume;
+}
+void ESPADFSpeaker::volume_up() {
+    ESP_LOGI(TAG, "Volume up button pressed");
+    int current_volume = this->get_current_volume();
+    this->set_volume(current_volume + 10);
+}
+
+void ESPADFSpeaker::volume_down() {
+    ESP_LOGI(TAG, "Volume down button pressed");
+    int current_volume = this->get_current_volume();
+    this->set_volume(current_volume - 10);
+}
+
+void ESPADFSpeaker::handle_mode_button() {
+  //#define curren_url_ "http://streaming.tdiradio.com:8000/house.mp3"
+	if (this->state_ != speaker::STATE_RUNNING && this->state_ != speaker::STATE_STARTING) {
+		//this->is_http_stream_ = true;
+		ESP_LOGI(TAG, "Mode button, speaker stopped");
+		this->play_url("http://streaming.tdiradio.com:8000/house.mp3");
+	} else {
+		ESP_LOGI(TAG, "State is stopping");
+		this->cleanup_audio_pipeline();
+		this->stop();
+			
+	} 
+}
+
+void ESPADFSpeaker::button_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data) {
     uint32_t current_time = millis();
     static uint32_t last_button_press[6] = {0};  // Array to store the last press time for each button
     uint32_t debounce_time = 200;  // Default debounce time in milliseconds
@@ -88,57 +155,6 @@ void button_event_handler(void *handler_args, esp_event_base_t base, int32_t id,
         }
         last_button_press[id] = current_time;
     }
-}
-void ESPADFSpeaker::set_volume(int volume) {
-    ESP_LOGI(TAG, "Setting volume to %d", volume);
-    
-    // Ensure the volume is within the range 0-100
-    if (volume < 0) volume = 0;
-    if (volume > 100) volume = 100;
-    this->volume_ = volume;
-
-    // Set volume using HAL
-    
-    audio_board_handle_t board_handle = audio_board_init();
-    esp_err_t err = audio_hal_set_volume(board_handle->audio_hal, volume);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Error setting volume: %s", esp_err_to_name(err));
-    }
-
-    // Update the volume sensor
-    if (this->volume_sensor != nullptr) {
-      this->volume_sensor->publish_state(this->volume_);
-    } else {
-      ESP_LOGE(TAG, "Volume sensor is not initialized");
-    }
-}
-int ESPADFSpeaker::get_current_volume() {
-  audio_board_handle_t board_handle = audio_board_init();
-  if (board_handle == nullptr) {
-    ESP_LOGE(TAG, "Failed to initialize audio board");
-    return 0;
-  }
-
-  int current_volume = 0;
-  esp_err_t read_err = audio_hal_get_volume(board_handle->audio_hal, &current_volume);
-  if (read_err == ESP_OK) {
-    ESP_LOGI(TAG, "Current device volume: %d", current_volume);
-  } else {
-    ESP_LOGE(TAG, "Error reading current volume: %s", esp_err_to_name(read_err));
-  }
-
-  return current_volume;
-}
-void ESPADFSpeaker::volume_up() {
-    ESP_LOGI(TAG, "Volume up button pressed");
-    int current_volume = this->get_current_volume();
-    this->set_volume(current_volume + 10);
-}
-
-void ESPADFSpeaker::volume_down() {
-    ESP_LOGI(TAG, "Volume down button pressed");
-    int current_volume = this->get_current_volume();
-    this->set_volume(current_volume - 10);
 }
 void ESPADFSpeaker::initialize_audio_pipeline() {
     esp_err_t ret;
@@ -265,20 +281,6 @@ void ESPADFSpeaker::setup() {
     this->is_http_stream_ = true;
     this->play_url("http://streaming.tdiradio.com:8000/house.mp3");
 }*/
-
-void ESPADFSpeaker::handle_mode_button() {
-  //#define curren_url_ "http://streaming.tdiradio.com:8000/house.mp3"
-	if (this->state_ != speaker::STATE_RUNNING && this->state_ != speaker::STATE_STARTING) {
-		//this->is_http_stream_ = true;
-		ESP_LOGI(TAG, "Mode button, speaker stopped");
-		this->play_url("http://streaming.tdiradio.com:8000/house.mp3");
-	} else {
-		ESP_LOGI(TAG, "State is stopping");
-		this->cleanup_audio_pipeline();
-		this->stop();
-			
-	} 
-}
 
 void ESPADFSpeaker::play_url(const std::string &url) {
 
