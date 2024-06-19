@@ -15,12 +15,6 @@
 #include <audio_element.h>
 #include <audio_pipeline.h>
 
-#include "esp_event.h" 
-#include "esp_peripherals.h"
-#include "periph_adc_button.h"
-
-ESP_EVENT_DECLARE_BASE(ADC_BUTTON_EVENT_BASE);
-
 namespace esphome {
 namespace esp_adf {
 
@@ -39,8 +33,6 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
   bool has_buffered_data() const override;
 
   // Declare methods for volume control
-  static void button_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data);
-  void handle_button_event(esp_event_base_t base, int32_t id, void *event_data);
   void set_volume(int volume);
   void volume_up();
   void volume_down();
@@ -90,4 +82,3 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
 }  // namespace esphome
 
 #endif  // USE_ESP_IDF
-
