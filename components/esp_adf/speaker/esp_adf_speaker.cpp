@@ -182,8 +182,9 @@ void ESPADFSpeaker::setup() {
     //adc1_config_channel_atten((adc1_channel_t)but_channel, ADC_ATTEN);
 
     this->initialize_audio_pipeline();
-    /*
-    esp_periph_set_handle_t set = esp_periph_set_init(NULL);
+    
+     esp_periph_config_t periph_cfg = DEFAULT_ESP_PERIPH_SET_CONFIG();
+     esp_periph_set_handle_t set = esp_periph_set_init(&periph_cfg);
     
     audio_board_key_init(set);
     esp_event_handler_register(ESP_EVENT_ANY_BASE, ESP_EVENT_ANY_ID, ESPADFSpeaker::button_event_handler, this);
