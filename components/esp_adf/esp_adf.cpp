@@ -38,7 +38,7 @@ void ESPADF::setup() {
 
   // Register the button event handler
   ESP_LOGI(TAG, "Registering button event handler...");
-  esp_event_handler_register(ESP_EVENT_ANY_BASE, ESP_EVENT_ANY_ID, button_event_handler, this);
+  //esp_event_handler_register(ESP_EVENT_ANY_BASE, ESP_EVENT_ANY_ID, button_event_handler, this);
 
 #endif
 }
