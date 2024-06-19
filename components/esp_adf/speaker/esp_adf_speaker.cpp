@@ -117,12 +117,7 @@ void ESPADFSpeaker::initialize_audio_pipeline() {
 
 void ESPADFSpeaker::setup() {
     ESP_LOGCONFIG(TAG, "Setting up ESP ADF Speaker...");
-
-    esp_periph_set_handle_t set = esp_periph_set_init(NULL);
     
-    audio_board_key_init(set);
-    esp_event_handler_register(ESP_EVENT_ANY_BASE, ESP_EVENT_ANY_ID, ESPADFSpeaker::button_event_handler, this);
-
     #ifdef USE_ESP_ADF_BOARD
     gpio_num_t pa_enable_gpio = static_cast<gpio_num_t>(get_pa_enable_gpio());
     //int but_channel = INPUT_BUTOP_ID;
