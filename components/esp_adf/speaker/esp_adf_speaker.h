@@ -18,6 +18,8 @@
 #include <periph_adc_button.h>
 #include <board.h>
 
+#include <esp_event.h>  
+
 
 namespace esphome {
 namespace esp_adf {
