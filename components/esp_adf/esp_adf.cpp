@@ -42,7 +42,7 @@ void ESPADF::setup() {
 
 #endif
 }
-void button_event_handler(void *handler_arg, esp_event_base_t base, int32_t id, void *event_data) {
+void ESPADF::button_event_handler(void *handler_arg, esp_event_base_t base, int32_t id, void *event_data) {
   ESP_LOGI(TAG, "Button event received: base=%s, id=%d", base, id);
   // Handle the event here
 }
