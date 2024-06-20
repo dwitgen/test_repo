@@ -213,9 +213,11 @@ void ESPADFSpeaker::setup() {
 void ESPADFSpeaker::button_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data) {
     ESPADFSpeaker *instance = static_cast<ESPADFSpeaker*>(handler_args);
     instance->handle_button_event(id);
+    ESP_LOGI(TAG, "Button event received: base=%s, id=%d", base, id);
 }
 
 void ESPADFSpeaker::handle_button_event(int32_t id) {
+    ESP_LOGI(TAG, "Handle Button event received: base=%s, id=%d", base, id);
     uint32_t current_time = millis();
     static uint32_t last_button_press[6] = {0};
     uint32_t debounce_time = 200;
