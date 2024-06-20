@@ -269,6 +269,21 @@ void ESPADFSpeaker::handle_mode_button() {
     }
 }
 
+void ESPADFSpeaker::handle_play_button() {
+    ESP_LOGI(TAG, "Play button action");
+    // Add code to play
+}
+
+void ESPADFSpeaker::handle_set_button() {
+    ESP_LOGI(TAG, "Set button action");
+    // Add code to handle set action
+}
+
+void ESPADFSpeaker::handle_rec_button() {
+    ESP_LOGI(TAG, "Record button action");
+    // Add code to start recording
+}
+
 void ESPADFSpeaker::play_url(const std::string &url) {
     if (this->state_ == speaker::STATE_RUNNING || this->state_ == speaker::STATE_STARTING) {
         ESP_LOGI(TAG, "Audio stream is already running, ignoring play request");
