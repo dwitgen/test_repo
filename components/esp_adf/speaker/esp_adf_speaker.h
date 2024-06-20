@@ -55,7 +55,10 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
   void cleanup_audio_pipeline();
 
   // Declare methods for media/http streaming
+  void handle_set_button();
+  void handle_play_button();
   void handle_mode_button();
+  void handle_rec_button();
   void play_url(const std::string &url); 
   void media_play();
   void media_pause();
