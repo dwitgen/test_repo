@@ -57,6 +57,7 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
   void cleanup_audio_pipeline();
 
   // Declare methods for media/http streaming
+  static esp_err_t input_key_service_cb(periph_service_handle_t handle, periph_service_event_t *evt, void *ctx);
   void handle_set_button();
   void handle_play_button();
   void handle_mode_button();
