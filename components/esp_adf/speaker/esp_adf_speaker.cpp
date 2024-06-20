@@ -62,11 +62,11 @@ void ESPADFSpeaker::set_volume(int volume) {
 }
 
 int ESPADFSpeaker::get_current_volume() {
-    /*audio_board_handle_t board_handle = audio_board_init();
+   audio_board_handle_t board_handle = audio_board_init();
     if (board_handle == nullptr) {
         ESP_LOGE(TAG, "Failed to initialize audio board");
         return 0;
-    }*/
+    }
 
     int current_volume = 0;
     esp_err_t read_err = audio_hal_get_volume(board_handle->audio_hal, &current_volume);
