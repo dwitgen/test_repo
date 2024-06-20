@@ -184,7 +184,7 @@ void ESPADFSpeaker::setup() {
     // Initialize the peripheral set with increased queue size
     ESP_LOGI(TAG, "Initializing peripheral set...");
     esp_periph_config_t periph_cfg = {
-        .task_stack = 2048,
+        .task_stack = 4096,
         .task_prio = 5,
         .task_core = 0,
         .extern_stack = false
