@@ -206,8 +206,8 @@ void ESPADFSpeaker::setup() {
             .task_stack = INPUT_KEY_SERVICE_TASK_STACK_SIZE,
             .task_prio = INPUT_KEY_SERVICE_TASK_PRIORITY,
             .task_core = INPUT_KEY_SERVICE_TASK_ON_CORE,
+            .task_func = nullptr,
             .extern_stack = false,
-            .task_func = nullptr, // Initialize all other members to null or their default values
             .service_start = nullptr,
             .service_stop = nullptr,
             .service_destroy = nullptr,
