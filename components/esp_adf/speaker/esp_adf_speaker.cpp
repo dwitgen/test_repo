@@ -178,11 +178,6 @@ void ESPADFSpeaker::setup() {
     int initial_volume = this->get_current_volume();
     this->set_volume(initial_volume);
 
-    //adc1_config_width(ADC_WIDTH_BIT);
-    //adc1_config_channel_atten((adc1_channel_t)but_channel, ADC_ATTEN);
-
-    this->initialize_audio_pipeline();
-    
     // Initialize the peripheral set with increased queue size
     ESP_LOGI(TAG, "Initializing peripheral set...");
     esp_periph_config_t periph_cfg = {
@@ -207,7 +202,12 @@ void ESPADFSpeaker::setup() {
       return;
     }*/
 
+    //adc1_config_width(ADC_WIDTH_BIT);
+    //adc1_config_channel_atten((adc1_channel_t)but_channel, ADC_ATTEN);
+
+    this->initialize_audio_pipeline();
     
+      
 }
 
 void ESPADFSpeaker::button_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data) {
