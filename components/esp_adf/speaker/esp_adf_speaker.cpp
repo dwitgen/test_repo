@@ -190,39 +190,38 @@ void ESPADFSpeaker::setup() {
 
     // Initialize the audio board keys
     ESP_LOGI(TAG, "Initializing audio board keys...");
-    esp_err_t ret = audio_board_key_init(set);
-    if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to initialize audio board keys: %s", esp_err_to_name(ret));
-        return;
-    }
+    audio_board_key_init(set);
 
-    ESP_LOGI(TAG, "Creating and starting input key service");
+    ESP_LOGI(TAG, "[ 3 ] Create and start input key service");
     input_key_service_info_t input_key_info[] = INPUT_KEY_DEFAULT_INFO();
-    input_key_service_cfg_t input_cfg = INPUT_KEY_SERVICE_DEFAULT_CONFIG();
-    input_cfg.handle = set;
-    input_cfg.based_cfg.task_stack = 4 * 1024;
+    input_key_service_cfg_t input_cfg = {
+        .based_cfg = {
+            .task_stack = INPUT_KEY_SERVICE_TASK_STACK_SIZE,
+            .task_prio = INPUT_KEY_SERVICE_TASK_PRIORITY,
+            .task_core = INPUT_KEY_SERVICE_TASK_ON_CORE,
+            .extern_stack = false,
+            .task_func = NULL,
+            .service_start = NULL,
+            .service_stop = NULL,
+            .service_destroy = NULL,
+            .service_ioctl = NULL,
+            .service_name = NULL,
+            .user_data = NULL
+        },
+        .handle = set
+    };
     periph_service_handle_t input_ser = input_key_service_create(&input_cfg);
-    
-    if (input_ser == NULL) {
-        ESP_LOGE(TAG, "Failed to create input key service");
-        return;
-    }
-
     input_key_service_add_key(input_ser, input_key_info, INPUT_KEY_NUM);
     periph_service_set_callback(input_ser, ESPADFSpeaker::input_key_service_cb, this);
-
-    ESP_LOGW(TAG, "Waiting for a button to be pressed ...");
 
     this->initialize_audio_pipeline();
 }
 
 esp_err_t ESPADFSpeaker::input_key_service_cb(periph_service_handle_t handle, periph_service_event_t *evt, void *ctx) {
     ESPADFSpeaker *instance = static_cast<ESPADFSpeaker*>(ctx);
-    ESP_LOGI(TAG, "Button event received: key_id=%d, event_type=%d", (int)evt->data, evt->type);
-    instance->handle_button_event((int)evt->data);
+    instance->handle_button_event(static_cast<int32_t>(evt->data));
     return ESP_OK;
 }
-
 void ESPADFSpeaker::handle_button_event(int32_t id) {
     ESP_LOGI(TAG, "Handle Button event received: id=%d", id);
     uint32_t current_time = millis();
