@@ -23,8 +23,6 @@
 #include "esp_peripherals.h"
 #include "periph_adc_button.h"
 #include "input_key_service.h"
-//#include "periph_button.h"
-//#include <esp_event.h>
 
 #ifdef USE_ESP_ADF_BOARD
 #include <board.h>
@@ -35,9 +33,6 @@ namespace esp_adf {
 
 static const size_t BUFFER_COUNT = 50;
 static const char *const TAG = "esp_adf.speaker";
-
-//#define ADC_WIDTH_BIT    ADC_WIDTH_BIT_12
-//#define ADC_ATTEN        ADC_ATTEN_DB_12
 
 #ifndef ESP_EVENT_ANY_ID
 #define ESP_EVENT_ANY_ID -1
@@ -64,7 +59,7 @@ void ESPADFSpeaker::set_volume(int volume) {
 }
 
 int ESPADFSpeaker::get_current_volume() {
-   audio_board_handle_t board_handle = audio_board_init();
+    audio_board_handle_t board_handle = audio_board_init();
     if (board_handle == nullptr) {
         ESP_LOGE(TAG, "Failed to initialize audio board");
         return 0;
@@ -122,7 +117,6 @@ void ESPADFSpeaker::setup() {
     
     #ifdef USE_ESP_ADF_BOARD
     gpio_num_t pa_enable_gpio = static_cast<gpio_num_t>(get_pa_enable_gpio());
-    //int but_channel = INPUT_BUTOP_ID;
     #endif
 
     gpio_config_t io_conf;
@@ -194,35 +188,39 @@ void ESPADFSpeaker::setup() {
       return;
     }
 
-    //init_event_queue();
-    
     // Initialize the audio board keys
     ESP_LOGI(TAG, "Initializing audio board keys...");
-    audio_board_key_init(set);
-    /*if (ret != ESP_OK) {
-      ESP_LOGE(TAG, "Failed to initialize audio board keys: %s", esp_err_to_name(ret));
-      return;
-    }*/
+    esp_err_t ret = audio_board_key_init(set);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to initialize audio board keys: %s", esp_err_to_name(ret));
+        return;
+    }
 
-    ESP_LOGI(TAG, "[ 3 ] Create and start input key service");
+    ESP_LOGI(TAG, "Creating and starting input key service");
     input_key_service_info_t input_key_info[] = INPUT_KEY_DEFAULT_INFO();
     input_key_service_cfg_t input_cfg = INPUT_KEY_SERVICE_DEFAULT_CONFIG();
     input_cfg.handle = set;
     input_cfg.based_cfg.task_stack = 4 * 1024;
     periph_service_handle_t input_ser = input_key_service_create(&input_cfg);
+    
+    if (input_ser == NULL) {
+        ESP_LOGE(TAG, "Failed to create input key service");
+        return;
+    }
 
-    //adc1_config_width(ADC_WIDTH_BIT);
-    //adc1_config_channel_atten((adc1_channel_t)but_channel, ADC_ATTEN);
+    input_key_service_add_key(input_ser, input_key_info, INPUT_KEY_NUM);
+    periph_service_set_callback(input_ser, ESPADFSpeaker::input_key_service_cb, this);
+
+    ESP_LOGW(TAG, "Waiting for a button to be pressed ...");
 
     this->initialize_audio_pipeline();
-    
-      
 }
 
-void ESPADFSpeaker::button_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data) {
-    ESPADFSpeaker *instance = static_cast<ESPADFSpeaker*>(handler_args);
-    instance->handle_button_event(id);
-    ESP_LOGI(TAG, "Button event received: base=%s, id=%d", base, id);
+esp_err_t ESPADFSpeaker::input_key_service_cb(periph_service_handle_t handle, periph_service_event_t *evt, void *ctx) {
+    ESPADFSpeaker *instance = static_cast<ESPADFSpeaker*>(ctx);
+    ESP_LOGI(TAG, "Button event received: key_id=%d, event_type=%d", (int)evt->data, evt->type);
+    instance->handle_button_event((int)evt->data);
+    return ESP_OK;
 }
 
 void ESPADFSpeaker::handle_button_event(int32_t id) {
@@ -235,7 +233,7 @@ void ESPADFSpeaker::handle_button_event(int32_t id) {
         debounce_time = 500;
     }
 
-     if (current_time - last_button_press[id] > debounce_time) {
+    if (current_time - last_button_press[id] > debounce_time) {
         switch (id) {
             case BUTTON_VOLUP_ID:
                 ESP_LOGI(TAG, "Volume up detected");
