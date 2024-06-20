@@ -117,6 +117,7 @@ void ESPADFSpeaker::setup() {
     
     #ifdef USE_ESP_ADF_BOARD
     gpio_num_t pa_enable_gpio = static_cast<gpio_num_t>(get_pa_enable_gpio());
+    //int but_channel = INPUT_BUTOP_ID;
     #endif
 
     gpio_config_t io_conf;
@@ -196,6 +197,7 @@ void ESPADFSpeaker::setup() {
     input_key_service_info_t input_key_info[] = INPUT_KEY_DEFAULT_INFO();
     input_key_service_cfg_t input_cfg = INPUT_KEY_SERVICE_DEFAULT_CONFIG();
     input_cfg.handle = set;
+    input_cfg.based_cfg.task_stack = 4 * 1024;
     periph_service_handle_t input_ser = input_key_service_create(&input_cfg);
     input_key_service_add_key(input_ser, input_key_info, INPUT_KEY_NUM);
     periph_service_set_callback(input_ser, ESPADFSpeaker::input_key_service_cb, this);
@@ -205,6 +207,7 @@ void ESPADFSpeaker::setup() {
 
 esp_err_t ESPADFSpeaker::input_key_service_cb(periph_service_handle_t handle, periph_service_event_t *evt, void *ctx) {
     ESPADFSpeaker *instance = static_cast<ESPADFSpeaker*>(ctx);
+    ESP_LOGI(TAG, "Button event callback received: id=%d, event type=%d", (int)evt->data, evt->type);
     instance->handle_button_event(static_cast<int32_t>(reinterpret_cast<uintptr_t>(evt->data)));
     return ESP_OK;
 }
@@ -252,6 +255,7 @@ void ESPADFSpeaker::handle_button_event(int32_t id) {
         last_button_press[id] = current_time;
     }
 }
+
 
 
 void ESPADFSpeaker::handle_mode_button() {
