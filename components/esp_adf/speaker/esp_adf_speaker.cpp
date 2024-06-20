@@ -21,7 +21,8 @@
 #include "mp3_decoder.h"
 
 #include "periph_adc_button.h"
-#include "periph_button.h"
+#include "input_key_service.h"
+//#include "periph_button.h"
 //#include <esp_event.h>
 
 #ifdef USE_ESP_ADF_BOARD
@@ -202,11 +203,12 @@ void ESPADFSpeaker::setup() {
       return;
     }*/
 
-     // Start the peripheral set
-    if (esp_periph_start(set, NULL) != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to start the peripheral set");
-        return;
-    }
+    ESP_LOGI(TAG, "[ 3 ] Create and start input key service");
+    input_key_service_info_t input_key_info[] = INPUT_KEY_DEFAULT_INFO();
+    input_key_service_cfg_t input_cfg = INPUT_KEY_SERVICE_DEFAULT_CONFIG();
+    input_cfg.handle = set;
+    input_cfg.based_cfg.task_stack = 4 * 1024;
+    periph_service_handle_t input_ser = input_key_service_create(&input_cfg);
 
     //adc1_config_width(ADC_WIDTH_BIT);
     //adc1_config_channel_atten((adc1_channel_t)but_channel, ADC_ATTEN);
