@@ -184,8 +184,8 @@ void ESPADFSpeaker::setup() {
     };
     esp_periph_set_handle_t set = esp_periph_set_init(&periph_cfg);
     if (!set) {
-      ESP_LOGE(TAG, "Failed to initialize peripheral set");
-      return;
+        ESP_LOGE(TAG, "Failed to initialize peripheral set");
+        return;
     }
 
     // Initialize the audio board keys
@@ -194,23 +194,9 @@ void ESPADFSpeaker::setup() {
 
     ESP_LOGI(TAG, "[ 3 ] Create and start input key service");
     input_key_service_info_t input_key_info[] = INPUT_KEY_DEFAULT_INFO();
-    input_key_service_cfg_t input_cfg = {
-        .based_cfg = {
-            .task_stack = INPUT_KEY_SERVICE_TASK_STACK_SIZE,
-            .task_prio = INPUT_KEY_SERVICE_TASK_PRIORITY,
-            .task_core = INPUT_KEY_SERVICE_TASK_ON_CORE,
-            .extern_stack = false,
-            .task_func = NULL,
-            .service_start = NULL,
-            .service_stop = NULL,
-            .service_destroy = NULL,
-            .service_ioctl = NULL,
-            .service_name = NULL,
-            .user_data = NULL
-        },
-        .handle = set
-    };
-    esp_periph_service_handle_t input_ser = input_key_service_create(&input_cfg);
+    input_key_service_cfg_t input_cfg = INPUT_KEY_SERVICE_DEFAULT_CONFIG();
+    input_cfg.handle = set;
+    periph_service_handle_t input_ser = input_key_service_create(&input_cfg);
     input_key_service_add_key(input_ser, input_key_info, INPUT_KEY_NUM);
     periph_service_set_callback(input_ser, ESPADFSpeaker::input_key_service_cb, this);
 
@@ -219,9 +205,10 @@ void ESPADFSpeaker::setup() {
 
 esp_err_t ESPADFSpeaker::input_key_service_cb(periph_service_handle_t handle, periph_service_event_t *evt, void *ctx) {
     ESPADFSpeaker *instance = static_cast<ESPADFSpeaker*>(ctx);
-    instance->handle_button_event(static_cast<int32_t>(evt->data));
+    instance->handle_button_event(static_cast<int32_t>(reinterpret_cast<uintptr_t>(evt->data)));
     return ESP_OK;
 }
+
 void ESPADFSpeaker::handle_button_event(int32_t id) {
     ESP_LOGI(TAG, "Handle Button event received: id=%d", id);
     uint32_t current_time = millis();
@@ -265,6 +252,7 @@ void ESPADFSpeaker::handle_button_event(int32_t id) {
         last_button_press[id] = current_time;
     }
 }
+
 
 void ESPADFSpeaker::handle_mode_button() {
     if (this->state_ != speaker::STATE_RUNNING && this->state_ != speaker::STATE_STARTING) {
