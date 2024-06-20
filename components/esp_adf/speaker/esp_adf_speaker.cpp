@@ -20,6 +20,7 @@
 #include "audio_pipeline.h"
 #include "mp3_decoder.h"
 
+#include "esp_peripherals.h"
 #include "periph_adc_button.h"
 #include "input_key_service.h"
 //#include "periph_button.h"
