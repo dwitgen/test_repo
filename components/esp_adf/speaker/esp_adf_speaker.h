@@ -15,8 +15,10 @@
 #include <audio_element.h>
 #include <audio_pipeline.h>
 #include <audio_hal.h>
+#include "esp_peripherals.h"
 #include "periph_adc_button.h"
-#include "periph_button.h"
+#include "input_key_service.h"
+//#include "periph_button.h"
 //#include <esp_event.h>
 #include <board.h>
 
