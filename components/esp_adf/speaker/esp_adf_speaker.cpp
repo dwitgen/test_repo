@@ -202,6 +202,12 @@ void ESPADFSpeaker::setup() {
       return;
     }*/
 
+     // Start the peripheral set
+    if (esp_periph_start(set, NULL) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to start the peripheral set");
+        return;
+    }
+
     //adc1_config_width(ADC_WIDTH_BIT);
     //adc1_config_channel_atten((adc1_channel_t)but_channel, ADC_ATTEN);
 
