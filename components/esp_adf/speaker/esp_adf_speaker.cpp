@@ -118,8 +118,8 @@ void ESPADFSpeaker::initialize_audio_pipeline() {
 void ESPADFSpeaker::setup() {
     ESP_LOGCONFIG(TAG, "Setting up ESP ADF Speaker...");
 
-    adc1_config_width(ADC_WIDTH_BIT_12); // Ensure 12-bit width
-    adc1_config_channel_atten(ADC1_CHANNEL_3, ADC_ATTEN_DB_12); // Set attenuation
+    adc1_config_width(ADC_WIDTH_BIT);
+    adc1_config_channel_atten((adc1_channel_t)but_channel, ADC_ATTEN);
     
     #ifdef USE_ESP_ADF_BOARD
     gpio_num_t pa_enable_gpio = static_cast<gpio_num_t>(get_pa_enable_gpio());
