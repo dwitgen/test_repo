@@ -137,7 +137,7 @@ void ESPADFSpeaker::setup() {
 
     ExternalRAMAllocator<uint8_t> allocator(ExternalRAMAllocator<uint8_t>::ALLOW_FAILURE);
 
-    this->buffer_queue_.storage = allocator.allocate(sizeof(StaticQueue_t) + (BUFFER_COUNT * sizeof(DataEvent)));
+     this->buffer_queue_.storage = allocator.allocate(sizeof(StaticQueue_t) + (BUFFER_COUNT * sizeof(DataEvent)));
     if (this->buffer_queue_.storage == nullptr) {
         ESP_LOGE(TAG, "Failed to allocate buffer queue!");
         this->mark_failed();
@@ -201,16 +201,28 @@ void ESPADFSpeaker::setup() {
 
     ESP_LOGI(TAG, "[ 3 ] Create and start input key service");
     input_key_service_info_t input_key_info[] = INPUT_KEY_DEFAULT_INFO();
-    input_key_service_cfg_t input_cfg = INPUT_KEY_SERVICE_DEFAULT_CONFIG();
-    input_cfg.handle = set;
-    input_cfg.based_cfg.task_stack = 4 * 1024;
+    input_key_service_cfg_t input_cfg = {
+        .based_cfg = {
+            .task_stack = INPUT_KEY_SERVICE_TASK_STACK_SIZE,
+            .task_prio = INPUT_KEY_SERVICE_TASK_PRIORITY,
+            .task_core = INPUT_KEY_SERVICE_TASK_ON_CORE,
+            .extern_stack = false,
+            .task_func = nullptr, // Initialize all other members to null or their default values
+            .service_start = nullptr,
+            .service_stop = nullptr,
+            .service_destroy = nullptr,
+            .service_ioctl = nullptr,
+            .service_name = nullptr,
+            .user_data = nullptr
+        },
+        .handle = set
+    };
     periph_service_handle_t input_ser = input_key_service_create(&input_cfg);
     input_key_service_add_key(input_ser, input_key_info, INPUT_KEY_NUM);
     periph_service_set_callback(input_ser, ESPADFSpeaker::input_key_service_cb, this);
 
     this->initialize_audio_pipeline();
 }
-
 esp_err_t ESPADFSpeaker::input_key_service_cb(periph_service_handle_t handle, periph_service_event_t *evt, void *ctx) {
     ESPADFSpeaker *instance = static_cast<ESPADFSpeaker*>(ctx);
     ESP_LOGI(TAG, "Button event callback received: id=%d, event type=%d", (int)evt->data, evt->type);
