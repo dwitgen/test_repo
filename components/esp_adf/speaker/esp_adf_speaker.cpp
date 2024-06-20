@@ -225,8 +225,13 @@ void ESPADFSpeaker::setup() {
 }
 esp_err_t ESPADFSpeaker::input_key_service_cb(periph_service_handle_t handle, periph_service_event_t *evt, void *ctx) {
     ESPADFSpeaker *instance = static_cast<ESPADFSpeaker*>(ctx);
-    ESP_LOGI(TAG, "Button event callback received: id=%d, event type=%d", (int)evt->data, evt->type);
-    instance->handle_button_event(static_cast<int32_t>(reinterpret_cast<uintptr_t>(evt->data)));
+    int32_t id = static_cast<int32_t>(reinterpret_cast<uintptr_t>(evt->data));
+
+    // Read the ADC value
+    int adc_value = adc1_get_raw(ADC1_CHANNEL_3);  // Replace with your ADC channel
+    ESP_LOGI(TAG, "Button event callback received: id=%d, event type=%d, ADC value=%d", id, evt->type, adc_value);
+
+    instance->handle_button_event(id);
     return ESP_OK;
 }
 
