@@ -24,8 +24,6 @@
 
 #include <esp_event.h>  
 
-#include "esp_adf_button.h"
-
 namespace esphome {
 namespace esp_adf {
 
