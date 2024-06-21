@@ -104,4 +104,4 @@ async def to_code(config):
         )
 
      # Add include path for the button directory
-     cg.add_library("src/esphome/components/esp_adf/button", "1.0.0")
+     #cg.add_library("src/esphome/components/esp_adf/button", "1.0.0")
