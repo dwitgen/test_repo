@@ -272,10 +272,6 @@ void ESPADFSpeaker::handle_button_event(int32_t id) {
                 ESP_LOGI(TAG, "Mode button detected");
                 handle_mode_button();
                 break;
-            case INPUT_KEY_NUM:
-                ESP_LOGI(TAG, "Input_Key_Detected");
-                //handle_rec_button();
-                break;
             default:
                 ESP_LOGW(TAG, "Unhandled button event id: %d", id);
                 break;
