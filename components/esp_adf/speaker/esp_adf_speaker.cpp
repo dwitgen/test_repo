@@ -232,11 +232,11 @@ esp_err_t ESPADFSpeaker::input_key_service_cb(periph_service_handle_t handle, pe
     int adc_value = adc1_get_raw(ADC1_CHANNEL_3);  // Replace with your ADC channel
     ESP_LOGI(TAG, "Button event callback received: id=%d, event type=%d, ADC value=%d", id, evt->type, adc_value);
 
-    instance->handle_button_event(id);
+    instance->handle_button_event(id, evt->type);
     return ESP_OK;
 }
 
-void ESPADFSpeaker::handle_button_event(int32_t id) {
+void ESPADFSpeaker::handle_button_event(int32_t id int32_t event_type) {
     ESP_LOGI(TAG, "Handle Button event received: id=%d", id);
     if (event_type != 1) { // Only process the event if the event_type is 1
         ESP_LOGI(TAG, "Ignoring event with type: %d", event_type);
