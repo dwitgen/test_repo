@@ -234,7 +234,7 @@ void ESPADFSpeaker::setup() {
 
     instance->handle_button_event(id);
     return ESP_OK;
-}
+}*/
 
 void ESPADFSpeaker::handle_button_event(int32_t id) {
     ESP_LOGI(TAG, "Handle Button event received: id=%d", id);
@@ -278,7 +278,7 @@ void ESPADFSpeaker::handle_button_event(int32_t id) {
         }
         last_button_press[id] = current_time;
     }
-}*/
+}
 
 
 
