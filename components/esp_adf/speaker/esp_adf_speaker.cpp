@@ -238,6 +238,10 @@ esp_err_t ESPADFSpeaker::input_key_service_cb(periph_service_handle_t handle, pe
 
 void ESPADFSpeaker::handle_button_event(int32_t id) {
     ESP_LOGI(TAG, "Handle Button event received: id=%d", id);
+    if (event_type != 1) { // Only process the event if the event_type is 1
+        ESP_LOGI(TAG, "Ignoring event with type: %d", event_type);
+        return;
+    }
     uint32_t current_time = millis();
     static uint32_t last_button_press[6] = {0};
     uint32_t debounce_time = 200;
