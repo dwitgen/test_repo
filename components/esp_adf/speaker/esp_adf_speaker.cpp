@@ -248,6 +248,10 @@ void ESPADFSpeaker::handle_button_event(int32_t id) {
 
     if (current_time - last_button_press[id] > debounce_time) {
         switch (id) {
+            case INPUT_KEY_NUM:
+                ESP_LOGI(TAG, "Input_Key_Detected");
+                //handle_rec_button();
+                break;
             case BUTTON_REC_ID:
                 ESP_LOGI(TAG, "Record button detected");
                 handle_rec_button();
