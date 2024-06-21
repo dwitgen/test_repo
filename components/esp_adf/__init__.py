@@ -75,7 +75,7 @@ async def to_code(config):
         path="components/esp_adf",
         ref="main",
         components=["*"],  # Ensure all directories are included
-        submodules=["components/esp-sr", "components/esp-adf-libs"],
+        #submodules=["components/esp-sr", "components/esp-adf-libs"],
     )
 
     esp32.add_idf_component(
