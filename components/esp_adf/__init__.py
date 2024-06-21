@@ -102,6 +102,3 @@ async def to_code(config):
             "esp_adf_patches/idf_v4.4_freertos.patch",
             "https://github.com/espressif/esp-adf/raw/v2.5/idf_patches/idf_v4.4_freertos.patch",
         )
-
-      # Add include path for the button directory
-        cg.add_build_flag("-I src/esphome/components/esp_adf/button")
