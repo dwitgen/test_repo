@@ -18,8 +18,6 @@
 #include "esp_peripherals.h"
 #include "periph_adc_button.h"
 #include "input_key_service.h"
-//#include "periph_button.h"
-//#include <esp_event.h>
 #include <board.h>
 
 #include <esp_event.h>  
@@ -91,7 +89,7 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
    audio_element_handle_t http_filter_;
    audio_element_handle_t raw_write_;
    audio_element_handle_t http_stream_reader_;
-   Button button_;
+   
 };
 
 }  // namespace esp_adf
