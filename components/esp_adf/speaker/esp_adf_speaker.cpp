@@ -276,6 +276,10 @@ void ESPADFSpeaker::handle_button_event(int32_t id, int32_t event_type) {
                 ESP_LOGI(TAG, "Volume up detected");
                 volume_up();
                 break;
+            case 6:  // Handling for button ID 6 (Volume Up)
+                ESP_LOGI(TAG, "Volume up detected (ID 6)");
+                volume_up();
+                break;
             default:
                 ESP_LOGW(TAG, "Unhandled button event id: %d", id);
                 break;
