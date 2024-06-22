@@ -204,7 +204,7 @@ void ESPADFSpeaker::setup() {
     input_key_service_cfg_t input_cfg = {
         .based_cfg = {
             .task_stack = 4 * 1024, // INPUT_KEY_SERVICE_TASK_STACK_SIZE,
-            .task_prio = INPUT_KEY_SERVICE_TASK_PRIORITY,
+            .task_prio = 10, //INPUT_KEY_SERVICE_TASK_PRIORITY,
             .task_core = INPUT_KEY_SERVICE_TASK_ON_CORE,
             .task_func = nullptr,
             .extern_stack = false,
