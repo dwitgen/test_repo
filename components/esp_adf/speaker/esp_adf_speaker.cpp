@@ -184,11 +184,10 @@ void ESPADFSpeaker::setup() {
     // Initialize the peripheral set with increased queue size
     ESP_LOGI(TAG, "Initializing peripheral set...");
     esp_periph_config_t periph_cfg = {
-        .task_stack = 4096,
+        .task_stack = 8192,
         .task_prio = 5,
         .task_core = 0,
-        .extern_stack = false,
-        .queue_size = 30
+        .extern_stack = false
     };
     esp_periph_set_handle_t set = esp_periph_set_init(&periph_cfg);
     if (!set) {
@@ -204,7 +203,7 @@ void ESPADFSpeaker::setup() {
     input_key_service_info_t input_key_info[] = INPUT_KEY_DEFAULT_INFO();
     input_key_service_cfg_t input_cfg = {
         .based_cfg = {
-            .task_stack = INPUT_KEY_SERVICE_TASK_STACK_SIZE,
+            .task_stack = 4 * 1024, // INPUT_KEY_SERVICE_TASK_STACK_SIZE,
             .task_prio = INPUT_KEY_SERVICE_TASK_PRIORITY,
             .task_core = INPUT_KEY_SERVICE_TASK_ON_CORE,
             .task_func = nullptr,
