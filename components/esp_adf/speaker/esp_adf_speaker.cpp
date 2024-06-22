@@ -187,7 +187,8 @@ void ESPADFSpeaker::setup() {
         .task_stack = 4096,
         .task_prio = 5,
         .task_core = 0,
-        .extern_stack = false
+        .extern_stack = false,
+        .queue_size = 30
     };
     esp_periph_set_handle_t set = esp_periph_set_init(&periph_cfg);
     if (!set) {
