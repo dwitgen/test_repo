@@ -243,7 +243,7 @@ void ESPADFSpeaker::handle_button_event(int32_t id, int32_t event_type) {
         return;
     }
     uint32_t current_time = millis();
-    static uint32_t last_button_press[6] = {0};
+    static uint32_t last_button_press[7] = {0};
     uint32_t debounce_time = 200;
 
     if (id == BUTTON_MODE_ID) {
