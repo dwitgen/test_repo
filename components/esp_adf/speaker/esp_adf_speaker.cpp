@@ -238,7 +238,7 @@ esp_err_t ESPADFSpeaker::input_key_service_cb(periph_service_handle_t handle, pe
 
 void ESPADFSpeaker::handle_button_event(int32_t id, int32_t event_type) {
     ESP_LOGI(TAG, "Handle Button event received: id=%d", id);
-    if (event_type != 1) { // Only process the event if the event_type is 1
+    if (event_type != 1 || event_type != 3) { // Only process the event if the event_type is 1 click action or 3 long press action
         ESP_LOGI(TAG, "Ignoring event with type: %d", event_type);
         return;
     }
