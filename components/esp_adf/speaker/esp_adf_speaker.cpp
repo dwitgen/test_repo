@@ -100,7 +100,7 @@ void ESPADFSpeaker::volume_down() {
         return;
     }
 
-   /* ret = configure_i2s_stream_writer_http(&this->i2s_stream_writer_http_);
+    ret = configure_i2s_stream_writer_http(&this->i2s_stream_writer_http_);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Error initializing I2S stream writer for HTTP: %s", esp_err_to_name(ret));
         return;
