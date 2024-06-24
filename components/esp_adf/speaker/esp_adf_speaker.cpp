@@ -91,7 +91,7 @@ void ESPADFSpeaker::volume_down() {
     this->set_volume(current_volume - 10);
 }
 
-/*void ESPADFSpeaker::initialize_audio_pipeline() {
+void ESPADFSpeaker::initialize_audio_pipeline() {
     esp_err_t ret;
 
     ret = configure_resample_filter(&this->http_filter_);
@@ -113,7 +113,7 @@ void ESPADFSpeaker::volume_down() {
     }
 
     ESP_LOGI(TAG, "Audio pipeline and elements initialized successfully");
-}*/
+}
 
 void ESPADFSpeaker::setup() {
     ESP_LOGCONFIG(TAG, "Setting up ESP ADF Speaker...");
@@ -221,7 +221,7 @@ void ESPADFSpeaker::setup() {
     input_key_service_add_key(input_ser, input_key_info, INPUT_KEY_NUM);
     periph_service_set_callback(input_ser, ESPADFSpeaker::input_key_service_cb, this); 
 
-    //this->initialize_audio_pipeline();
+    this->initialize_audio_pipeline();
 }
 
 esp_err_t ESPADFSpeaker::input_key_service_cb(periph_service_handle_t handle, periph_service_event_t *evt, void *ctx) {
@@ -374,7 +374,7 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         ESP_LOGE(TAG, "Failed to initialize http audio pipeline");
         return;
     }
-    ESP_LOGI(TAG, "HTTP passed initialize new audio pipeline");
+    ESP_LOGI(TAG, "HTTP passed initilialize new audio pipeline");
 
     ESP_LOGI(TAG, "Register all elements to audio pipeline");
 
@@ -393,86 +393,14 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         this->pipeline_ = nullptr;
         return;
     }
-    
-    // Configuration for resample filter directly integrated
-    rsp_filter_cfg_t rsp_cfg = {
-        .src_rate = 44100,
-        .src_ch = 2,
-        .dest_rate = 44100,
-        .dest_bits = 16,
-        .dest_ch = 1,
-        .src_bits = 16,
-        .mode = RESAMPLE_DECODE_MODE,
-        .max_indata_bytes = RSP_FILTER_BUFFER_BYTE,
-        .out_len_bytes = RSP_FILTER_BUFFER_BYTE,
-        .type = ESP_RESAMPLE_TYPE_AUTO,
-        .complexity = 2,
-        .down_ch_idx = 0,
-        .prefer_flag = ESP_RSP_PREFER_TYPE_SPEED,
-        .out_rb_size = RSP_FILTER_RINGBUFFER_SIZE,
-        .task_stack = RSP_FILTER_TASK_STACK,
-        .task_core = RSP_FILTER_TASK_CORE,
-        .task_prio = RSP_FILTER_TASK_PRIO,
-        .stack_in_ext = true,
-    };
-
-    audio_element_handle_t filter = rsp_filter_init(&rsp_cfg);
-    
-    /*this->http_filter_ = rsp_filter_init(&rsp_cfg);
-    if (this->http_filter_ == NULL) {
-        ESP_LOGE(TAG, "Failed to initialize resample filter");
-        return;
-    }*/
-    ESP_LOGI(TAG, "Resample filter initialized");
 
     ESP_LOGI(TAG, "Register resample filter");
-    if (audio_pipeline_register(this->pipeline_, filter, "filter") != ESP_OK) {
+    if (audio_pipeline_register(this->pipeline_, this->http_filter_, "filter") != ESP_OK) {
         ESP_LOGE(TAG, "Failed to register resample filter");
         audio_pipeline_deinit(this->pipeline_);
         this->pipeline_ = nullptr;
         return;
     }
-
-    // Configuration for I2S stream writer for HTTP directly integrated
-    i2s_driver_config_t i2s_config = {
-        .mode = (i2s_mode_t) (I2S_MODE_MASTER | I2S_MODE_TX),
-        .sample_rate = 44100,
-        .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
-        .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
-        .communication_format = I2S_COMM_FORMAT_STAND_I2S,
-        .intr_alloc_flags = ESP_INTR_FLAG_LEVEL2 | ESP_INTR_FLAG_IRAM,
-        .dma_buf_count = 8,
-        .dma_buf_len = 1024,
-        .use_apll = false,
-        .tx_desc_auto_clear = true,
-        .fixed_mclk = 0,
-        .mclk_multiple = I2S_MCLK_MULTIPLE_256,
-        .bits_per_chan = I2S_BITS_PER_CHAN_DEFAULT,
-    };
-
-    i2s_stream_cfg_t i2s_cfg = {
-        .type = AUDIO_STREAM_WRITER,
-        .i2s_config = i2s_config,
-        .i2s_port = I2S_NUM_0,
-        .use_alc = false,
-        .volume = 0,
-        .out_rb_size = I2S_STREAM_RINGBUFFER_SIZE,
-        .task_stack = I2S_STREAM_TASK_STACK,
-        .task_core = I2S_STREAM_TASK_CORE,
-        .task_prio = I2S_STREAM_TASK_PRIO,
-        .stack_in_ext = false,
-        .multi_out_num = 0,
-        .uninstall_drv = true,
-        .need_expand = false,
-        .expand_src_bits = I2S_BITS_PER_SAMPLE_16BIT,
-    };
-
-    this->i2s_stream_writer_http_ = i2s_stream_init(&i2s_cfg);
-    if (this->i2s_stream_writer_http_ == NULL) {
-        ESP_LOGE(TAG, "Failed to initialize I2S stream writer for HTTP");
-        return;
-    }
-    ESP_LOGI(TAG, "I2S stream writer for HTTP initialized");
 
     ESP_LOGI(TAG, "Register I2S stream writer");
     if (audio_pipeline_register(this->pipeline_, this->i2s_stream_writer_http_, "i2s") != ESP_OK) {
@@ -516,7 +444,6 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         return;
     }
 }
-
 
 void ESPADFSpeaker::media_play() {
     if (this->state_ == speaker::STATE_STOPPED) {
