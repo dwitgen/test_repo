@@ -221,7 +221,7 @@ void ESPADFSpeaker::setup() {
     input_key_service_add_key(input_ser, input_key_info, INPUT_KEY_NUM);
     periph_service_set_callback(input_ser, ESPADFSpeaker::input_key_service_cb, this); 
 
-    this->initialize_audio_pipeline();
+    //this->initialize_audio_pipeline();
 }
 
 esp_err_t ESPADFSpeaker::input_key_service_cb(periph_service_handle_t handle, periph_service_event_t *evt, void *ctx) {
