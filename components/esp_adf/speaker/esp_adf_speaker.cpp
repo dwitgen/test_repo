@@ -252,29 +252,29 @@ void ESPADFSpeaker::handle_button_event(int32_t id, int32_t event_type) {
 
     if (current_time - last_button_press[id] > debounce_time) {
         switch (id) {
-            case 1:
-                ESP_LOGI(TAG, "Record button detected");
-                handle_rec_button();
+            case BUTTON_VOLUP_ID:
+                ESP_LOGI(TAG, "Volume up detected");
+                volume_up();
                 break;
-            case 2:
-                ESP_LOGI(TAG, "Set button detected");
-                handle_set_button();
-                break;
-            case 3:
-                ESP_LOGI(TAG, "Play button detected");
-                handle_play_button();
-                break;
-            case 4:
-                ESP_LOGI(TAG, "Mode button detected");
-                handle_mode_button();
-                break;
-            case 5:
+            case BUTTON_VOLDOWN_ID:
                 ESP_LOGI(TAG, "Volume down detected");
                 volume_down();
                 break;
-            case 6:
-                ESP_LOGI(TAG, "Volume up detected");
-                volume_up();
+            case BUTTON_SET_ID:
+                ESP_LOGI(TAG, "Set button detected");
+                handle_set_button();
+                break;
+            case BUTTON_PLAY_ID:
+                ESP_LOGI(TAG, "Play button detected");
+                handle_play_button();
+                break;
+            case BUTTON_MODE_ID:
+                ESP_LOGI(TAG, "Mode button detected");
+                handle_mode_button();
+                break;
+            case BUTTON_REC_ID:
+                ESP_LOGI(TAG, "Record button detected");
+                handle_rec_button();
                 break;
             default:
                 ESP_LOGW(TAG, "Unhandled button event id: %d", id);
