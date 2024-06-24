@@ -91,7 +91,7 @@ void ESPADFSpeaker::volume_down() {
     this->set_volume(current_volume - 10);
 }
 
-/*void ESPADFSpeaker::initialize_audio_pipeline() {
+void ESPADFSpeaker::initialize_audio_pipeline() {
     esp_err_t ret;
 
     ret = configure_resample_filter(&this->http_filter_);
@@ -100,7 +100,7 @@ void ESPADFSpeaker::volume_down() {
         return;
     }
 
-    ret = configure_i2s_stream_writer_http(&this->i2s_stream_writer_http_);
+   /* ret = configure_i2s_stream_writer_http(&this->i2s_stream_writer_http_);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Error initializing I2S stream writer for HTTP: %s", esp_err_to_name(ret));
         return;
@@ -110,10 +110,10 @@ void ESPADFSpeaker::volume_down() {
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Error initializing I2S stream writer for raw: %s", esp_err_to_name(ret));
         return;
-    }
+    }*/
 
     ESP_LOGI(TAG, "Audio pipeline and elements initialized successfully");
-}*/
+}
 
 void ESPADFSpeaker::setup() {
     ESP_LOGCONFIG(TAG, "Setting up ESP ADF Speaker...");
@@ -221,7 +221,7 @@ void ESPADFSpeaker::setup() {
     input_key_service_add_key(input_ser, input_key_info, INPUT_KEY_NUM);
     periph_service_set_callback(input_ser, ESPADFSpeaker::input_key_service_cb, this); 
 
-    //this->initialize_audio_pipeline();
+    this->initialize_audio_pipeline();
 }
 
 esp_err_t ESPADFSpeaker::input_key_service_cb(periph_service_handle_t handle, periph_service_event_t *evt, void *ctx) {
@@ -393,7 +393,7 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         this->pipeline_ = nullptr;
         return;
     }
-
+    /*
     // Configuration for resample filter directly integrated
     rsp_filter_cfg_t rsp_cfg = {
         .src_rate = 44100,
@@ -415,12 +415,12 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         .task_prio = RSP_FILTER_TASK_PRIO,
         .stack_in_ext = true,
     };
-
+    
     this->http_filter_ = rsp_filter_init(&rsp_cfg);
     if (this->http_filter_ == NULL) {
         ESP_LOGE(TAG, "Failed to initialize resample filter");
         return;
-    }
+    }*/
     ESP_LOGI(TAG, "Resample filter initialized");
 
     ESP_LOGI(TAG, "Register resample filter");
