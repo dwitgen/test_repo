@@ -110,7 +110,7 @@ void ESPADFSpeaker::volume_down() {
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Error initializing I2S stream writer for raw: %s", esp_err_to_name(ret));
         return;
-    }*/
+    }
 
     ESP_LOGI(TAG, "Audio pipeline and elements initialized successfully");
 }*/
