@@ -393,7 +393,7 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         this->pipeline_ = nullptr;
         return;
     }
-    /*
+    
     // Configuration for resample filter directly integrated
     rsp_filter_cfg_t rsp_cfg = {
         .src_rate = 44100,
@@ -415,8 +415,10 @@ void ESPADFSpeaker::play_url(const std::string &url) {
         .task_prio = RSP_FILTER_TASK_PRIO,
         .stack_in_ext = true,
     };
+
+    audio_element_handle_t filter = rsp_filter_init(&rsp_cfg);
     
-    this->http_filter_ = rsp_filter_init(&rsp_cfg);
+    /*this->http_filter_ = rsp_filter_init(&rsp_cfg);
     if (this->http_filter_ == NULL) {
         ESP_LOGE(TAG, "Failed to initialize resample filter");
         return;
@@ -424,7 +426,7 @@ void ESPADFSpeaker::play_url(const std::string &url) {
     ESP_LOGI(TAG, "Resample filter initialized");
 
     ESP_LOGI(TAG, "Register resample filter");
-    if (audio_pipeline_register(this->pipeline_, this->http_filter_, "filter") != ESP_OK) {
+    if (audio_pipeline_register(this->pipeline_, filter, "filter") != ESP_OK) {
         ESP_LOGE(TAG, "Failed to register resample filter");
         audio_pipeline_deinit(this->pipeline_);
         this->pipeline_ = nullptr;
