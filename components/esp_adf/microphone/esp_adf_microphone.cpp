@@ -3,10 +3,8 @@
 #ifdef USE_ESP_IDF
 
 #include <driver/i2s.h>
-
 #include "esphome/core/hal.h"
 #include "esphome/core/log.h"
-
 #include <algorithm_stream.h>
 #include <audio_element.h>
 #include <audio_hal.h>
@@ -15,13 +13,17 @@
 #include <i2s_stream.h>
 #include <raw_stream.h>
 #include <recorder_sr.h>
-
 #include <board.h>
+#include "esp_vad.h"
 
 namespace esphome {
 namespace esp_adf {
 
 static const char *const TAG = "esp_adf.microphone";
+
+#define VAD_SAMPLE_RATE_HZ 16000
+#define VAD_FRAME_LENGTH_MS 30
+#define VAD_BUFFER_LENGTH (VAD_FRAME_LENGTH_MS * VAD_SAMPLE_RATE_HZ / 1000)
 
 void ESPADFMicrophone::setup() {
   ESP_LOGCONFIG(TAG, "Setting up ESP ADF Microphone...");
@@ -169,6 +171,14 @@ void ESPADFMicrophone::read_task(void *params) {
 
   CommandEvent command_event;
 
+  vad_handle_t vad_inst = vad_create(VAD_MODE_4);
+
+  int16_t *vad_buff = (int16_t *)malloc(VAD_BUFFER_LENGTH * sizeof(short));
+  if (vad_buff == NULL) {
+      ESP_LOGE(TAG, "Memory allocation failed!");
+      goto abort_speech_detection;
+  }
+
   while (true) {
     if (xQueueReceive(this_mic->read_command_queue_, &command_event, 0) == pdTRUE) {
       if (command_event.stop) {
@@ -178,14 +188,8 @@ void ESPADFMicrophone::read_task(void *params) {
     }
 
     int bytes_read = raw_stream_read(raw_read, (char *) buffer, BUFFER_SIZE);
-
-    if (bytes_read == -2 || bytes_read == 0) {
-      // No data in buffers to read.
-      continue;
-    } else if (bytes_read < 0) {
-      event.type = TaskEventType::WARNING;
-      event.err = bytes_read;
-      xQueueSend(this_mic->read_event_queue_, &event, 0);
+    if (bytes_read <= 0) {
+      // No data in buffers to read or an error occurred.
       continue;
     }
 
@@ -194,7 +198,19 @@ void ESPADFMicrophone::read_task(void *params) {
     event.type = TaskEventType::RUNNING;
     event.err = written;
     xQueueSend(this_mic->read_event_queue_, &event, 0);
+
+    raw_stream_read(raw_read, (char *)vad_buff, VAD_BUFFER_LENGTH * sizeof(short));
+    vad_state_t vad_state = vad_process(vad_inst, vad_buff, VAD_SAMPLE_RATE_HZ, VAD_FRAME_LENGTH_MS);
+    if (vad_state == VAD_SPEECH) {
+      ESP_LOGI(TAG, "Speech detected");
+    }
   }
+
+  free(vad_buff);
+  vad_buff = NULL;
+
+abort_speech_detection:
+  vad_destroy(vad_inst);
 
   allocator.deallocate(buffer, BUFFER_SIZE / sizeof(int16_t));
 
@@ -207,13 +223,11 @@ void ESPADFMicrophone::read_task(void *params) {
 
   audio_pipeline_unregister(pipeline, i2s_stream_reader);
   audio_pipeline_unregister(pipeline, filter);
-  // audio_pipeline_unregister(pipeline, algo_stream);
   audio_pipeline_unregister(pipeline, raw_read);
 
   audio_pipeline_deinit(pipeline);
   audio_element_deinit(i2s_stream_reader);
   audio_element_deinit(filter);
-  // audio_element_deinit(algo_stream);
   audio_element_deinit(raw_read);
 
   event.type = TaskEventType::STOPPED;
