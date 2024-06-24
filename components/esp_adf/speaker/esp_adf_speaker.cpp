@@ -91,7 +91,7 @@ void ESPADFSpeaker::volume_down() {
     this->set_volume(current_volume - 10);
 }
 
-void ESPADFSpeaker::initialize_audio_pipeline() {
+/*void ESPADFSpeaker::initialize_audio_pipeline() {
     esp_err_t ret;
 
     ret = configure_resample_filter(&this->http_filter_);
@@ -113,7 +113,7 @@ void ESPADFSpeaker::initialize_audio_pipeline() {
     }
 
     ESP_LOGI(TAG, "Audio pipeline and elements initialized successfully");
-}
+}*/
 
 void ESPADFSpeaker::setup() {
     ESP_LOGCONFIG(TAG, "Setting up ESP ADF Speaker...");
