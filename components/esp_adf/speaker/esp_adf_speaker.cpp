@@ -205,7 +205,7 @@ void ESPADFSpeaker::setup() {
         .based_cfg = {
             .task_stack = ADC_BUTTON_STACK_SIZE, //4 * 1024, // INPUT_KEY_SERVICE_TASK_STACK_SIZE,
             .task_prio = ADC_BUTTON_TASK_PRIORITY, //10, //INPUT_KEY_SERVICE_TASK_PRIORITY,
-            .task_core = ADC_BUTTON_TASK_CORE_ID //INPUT_KEY_SERVICE_TASK_ON_CORE,
+            .task_core = ADC_BUTTON_TASK_CORE_ID, //INPUT_KEY_SERVICE_TASK_ON_CORE,
             .task_func = nullptr,
             .extern_stack = false,
             .service_start = nullptr,
