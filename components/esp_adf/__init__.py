@@ -1,6 +1,7 @@
 import os
 import esphome.codegen as cg
 import esphome.config_validation as cv
+import esphome.final_validate as fv
 from esphome.components import esp32
 from esphome.const import CONF_ID, CONF_BOARD
 
