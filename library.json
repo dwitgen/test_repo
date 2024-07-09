@@ -8,6 +8,11 @@
       "+<components/esp_adf/speaker/*>",
       "+<components/esp_adf/*.cpp>",
       "+<components/esp_adf/*.h>"
+    ],
+    "include": [
+      "${PROJECT_SRC_DIR}/components/esp_adf",
+      "${PROJECT_SRC_DIR}/components",
+      "${PROJECT_SRC_DIR}"
     ]
   }
 }
