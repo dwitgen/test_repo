@@ -1,11 +1,7 @@
 import os
-
-import esphome.config_validation as cv
 import esphome.codegen as cg
-import esphome.final_validate as fv
-
+import esphome.config_validation as cv
 from esphome.components import esp32
-
 from esphome.const import CONF_ID, CONF_BOARD
 
 CODEOWNERS = ["@jesserockz"]
@@ -17,6 +13,7 @@ CONF_ESP_ADF = "esp_adf"
 esp_adf_ns = cg.esphome_ns.namespace("esp_adf")
 ESPADF = esp_adf_ns.class_("ESPADF", cg.Component)
 ESPADFPipeline = esp_adf_ns.class_("ESPADFPipeline", cg.Parented.template(ESPADF))
+ButtonHandler = esp_adf_ns.class_("ButtonHandler")
 
 SUPPORTED_BOARDS = {
     "esp32s3box": "CONFIG_ESP32_S3_BOX_BOARD",
@@ -26,7 +23,6 @@ SUPPORTED_BOARDS = {
     "esp32korvo1": "CONFIG_ESP32_KORVO1_BOARD"
 }
 
-
 def _default_board(config):
     config = config.copy()
     if board := config.get(CONF_BOARD) is None:
@@ -34,7 +30,6 @@ def _default_board(config):
         if board in SUPPORTED_BOARDS:
             config[CONF_BOARD] = board
     return config
-
 
 def final_validate_usable_board(platform: str):
     def _validate(adf_config):
@@ -48,7 +43,6 @@ def final_validate_usable_board(platform: str):
         extra=cv.ALLOW_EXTRA,
     )
 
-
 CONFIG_SCHEMA = cv.All(
     cv.Schema(
         {
@@ -59,7 +53,6 @@ CONFIG_SCHEMA = cv.All(
     _default_board,
     cv.only_with_esp_idf,
 )
-
 
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
@@ -102,3 +95,6 @@ async def to_code(config):
             "esp_adf_patches/idf_v4.4_freertos.patch",
             "https://github.com/espressif/esp-adf/raw/v2.5/idf_patches/idf_v4.4_freertos.patch",
         )
+
+# Ensure the button component is included
+cg.add_platformio_option("src_filter", "+<components/esp_adf/button/*>")
