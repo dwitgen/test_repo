@@ -7,18 +7,20 @@
 #include "input_key_service.h"
 #include "esp_log.h"
 
-class Button {
-public:
-    Button();
-    void initialize();
-    void readButton();
-    void setSpeakerContext(void* ctx);
+namespace esphome {
+namespace esp_adf {
 
-private:
-    esp_periph_handle_t adc_btn_handle;
-    input_key_service_info_t *input_key_info;
-    void* speaker_ctx;
-    static esp_err_t input_key_service_cb(periph_service_handle_t handle, periph_service_event_t *evt, void *ctx);
+class ButtonHandler {
+ public:
+  static esp_err_t input_key_service_cb(periph_service_handle_t handle, periph_service_event_t *evt, void *ctx);
+  static void handle_button_event(int32_t id, int32_t event_type);
+  static void handle_mode_button();
+  static void handle_play_button();
+  static void handle_set_button();
+  static void handle_rec_button();
 };
 
-#endif // ESP_ADF_BUTTON_H
+}  // namespace esp_adf
+}  // namespace esphome
+
+#endif// ESP_ADF_BUTTON_H
