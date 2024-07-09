@@ -20,7 +20,7 @@
 #include "input_key_service.h"
 #include <board.h>
 
-#include "esp_adf_button.h"
+#include "src/esphome/components/esp_adf/button/esp_adf_button.h"
 
 #include <esp_event.h>  
 
