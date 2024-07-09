@@ -98,4 +98,4 @@ async def to_code(config):
         )
 
 # Ensure the button component is included
-cg.add_platformio_option("src_filter", "+<components/esp_adf/button/*>")
+cg.add_platformio_option("build_src_filter", "+<components/esp_adf/button/*>")
