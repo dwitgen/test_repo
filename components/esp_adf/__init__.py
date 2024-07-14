@@ -98,8 +98,8 @@ async def to_code(config):
             "https://github.com/espressif/esp-adf/raw/v2.5/idf_patches/idf_v4.4_freertos.patch",
         )
     
-     # Add post build script
-    esp32.add_extra_script(
-        "post",
-        os.path.join(os.path.dirname(__file__), "post_build.py")
-    )
+ # Add post build script
+  esp32.add_extra_script(
+      "post",
+      os.path.join(os.path.dirname(__file__), "post_build.py")
+  )
