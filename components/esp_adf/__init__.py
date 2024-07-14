@@ -97,11 +97,9 @@ async def to_code(config):
             "esp_adf_patches/idf_v4.4_freertos.patch",
             "https://github.com/espressif/esp-adf/raw/v2.5/idf_patches/idf_v4.4_freertos.patch",
         )
-# Register the media_player component
-esp32.add_idf_component(
-    name="media_player",
-    repo="https://github.com/dwitgen/test_repo",
-    path="components/esp_adf",
-    ref="main",
-    components=["media_player"]
-)
+    
+     # Add post build script
+    esp32.add_extra_script(
+        "post",
+        os.path.join(os.path.dirname(__file__), "post_build.py")
+    )
