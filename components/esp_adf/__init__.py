@@ -100,5 +100,5 @@ async def to_code(config):
        # Add post build script
         esp32.add_extra_script(
             "post:move_media_player.py",
-            os.path.join(os.path.dirname(__file__), "move_media_player.py"),
+            os.path.join(os.path.dirname(__file__), "ensure_media_player.py"),
         )
