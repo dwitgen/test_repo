@@ -97,9 +97,8 @@ async def to_code(config):
             "https://github.com/espressif/esp-adf/raw/v2.5/idf_patches/idf_v4.4_freertos.patch",
         )
 
-        # Add post build script
+       # Add post build script
         esp32.add_extra_script(
-            "post",
-            "move_media_player.py"
+            "post:move_media_player.py",
+            os.path.join(os.path.dirname(__file__), "move_media_player.py"),
         )
-
