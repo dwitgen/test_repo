@@ -97,15 +97,11 @@ async def to_code(config):
             "esp_adf_patches/idf_v4.4_freertos.patch",
             "https://github.com/espressif/esp-adf/raw/v2.5/idf_patches/idf_v4.4_freertos.patch",
         )
-# Ensure the button component is included
-cg.add_platformio_option("build_src_filter", "+<components/esp_adf/button/*>")
-
-# Ensure the media_player directory is included
-cg.add_platformio_option("build_src_filter", "+<media_player/*>")
-
 # Register the media_player component
 esp32.add_idf_component(
     name="media_player",
-    path="media_player",
-    components=["*"]
+    repo="https://github.com/dwitgen/test_repo",
+    path="components/esp_adf",
+    ref="main",
+    components=["media_player"]
 )
