@@ -88,12 +88,14 @@ async def to_code(config):
         esp32.add_idf_sdkconfig_option(SUPPORTED_BOARDS[board], True)
 
         esp32.add_extra_script(
-            "pre:apply_adf_patches.py",
+            "pre",
+            "apply_adf_patches.py",
             os.path.join(os.path.dirname(__file__), "apply_adf_patches.py.script"),
         )
-
-# Ensure the button component is included
-cg.add_platformio_option("build_src_filter", "+<components/esp_adf/button/*>")
+        esp32.add_extra_build_file(
+            "esp_adf_patches/idf_v4.4_freertos.patch",
+            "https://github.com/espressif/esp-adf/raw/v2.5/idf_patches/idf_v4.4_freertos.patch",
+        )
 
 # Add post-build script execution
 post_build_script = os.path.join(os.path.dirname(__file__), "ensure_media_player.py")
