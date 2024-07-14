@@ -96,7 +96,7 @@ async def to_code(config):
             "esp_adf_patches/idf_v4.4_freertos.patch",
             "https://github.com/espressif/esp-adf/raw/v2.5/idf_patches/idf_v4.4_freertos.patch",
         )
-
-# Add post-build script execution
-post_build_script = os.path.join(os.path.dirname(__file__), "ensure_media_player.py")
-cg.add_platformio_option("extra_scripts", f"post:{post_build_script}")
+        esp32.add_extra_build_file(
+            "src/esphome/components/esp_adf/CMakeLists.txt",
+            "https://github.com/dwitgen/test_repo/edit/main/components/esp_adf/CMakeLists.txt",
+        )
