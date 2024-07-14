@@ -1,4 +1,3 @@
-
 import os
 import esphome.codegen as cg
 import esphome.config_validation as cv
@@ -97,9 +96,10 @@ async def to_code(config):
             "esp_adf_patches/idf_v4.4_freertos.patch",
             "https://github.com/espressif/esp-adf/raw/v2.5/idf_patches/idf_v4.4_freertos.patch",
         )
-    
+
         # Add post build script
         esp32.add_extra_script(
-          "post",
-          os.path.join(os.path.dirname(__file__), "post_build.py")
+            "post",
+            "move_media_player.py"
         )
+
