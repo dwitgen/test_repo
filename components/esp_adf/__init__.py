@@ -89,15 +89,20 @@ async def to_code(config):
         esp32.add_idf_sdkconfig_option(SUPPORTED_BOARDS[board], True)
 
         esp32.add_extra_script(
-            "pre:apply_adf_patches.py",
+            "pre",
+            "apply_adf_patches.py",
             os.path.join(os.path.dirname(__file__), "apply_adf_patches.py.script"),
         )
 
         esp32.add_extra_script(
-            "post:ensure_media_player.py",
+            "post",
             os.path.join(os.path.dirname(__file__), "ensure_media_player.py"),
         )
 
+# Ensure the button component is included
+cg.add_platformio_option("build_src_filter", "+<components/esp_adf/button/*>")
+
+# Define and run the ensure_media_player function
 def ensure_media_player(source_dir, destination_dir):
     # Ensure the destination directory exists
     os.makedirs(destination_dir, exist_ok=True)
@@ -110,10 +115,6 @@ def ensure_media_player(source_dir, destination_dir):
     else:
         print(f"Source directory {source_dir} does not exist. Skipping.")
 
-# Ensure the button component is included
-cg.add_platformio_option("build_src_filter", "+<components/esp_adf/button/*>")
-
-# Hook the ensure_media_player function into the post-build process
 source_dir = os.path.join(os.getcwd(), 'components', 'esp_adf', 'media_player')
 destination_dir = os.path.join(os.getcwd(), 'src', 'esphome', 'components', 'esp_adf', 'media_player')
 ensure_media_player(source_dir, destination_dir)
