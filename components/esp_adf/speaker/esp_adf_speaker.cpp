@@ -79,18 +79,6 @@ int ESPADFSpeaker::get_current_volume() {
     return current_volume;
 }
 
-void ESPADFSpeaker::volume_up() {
-    ESP_LOGI(TAG, "Volume up button pressed");
-    int current_volume = this->get_current_volume();
-    this->set_volume(current_volume + 10);
-}
-
-void ESPADFSpeaker::volume_down() {
-    ESP_LOGI(TAG, "Volume down button pressed");
-    int current_volume = this->get_current_volume();
-    this->set_volume(current_volume - 10);
-}
-
 void ESPADFSpeaker::initialize_audio_pipeline() {
     esp_err_t ret;
 
