@@ -1,5 +1,4 @@
 #include "esp_adf_button.h"
-#include "../speaker/esp_adf_speaker.h"
 
 namespace esphome {
 namespace esp_adf {
@@ -22,7 +21,7 @@ void ButtonHandler::handle_button_event(ESPADFSpeaker *instance, int32_t id, int
         ESP_LOGI("ButtonHandler", "Ignoring event with type: %d", event_type);
         return;
     }
-    uint32_t current_time = esp_timer_get_time() / 1000;  // Use esp_timer_get_time() to get the current time in milliseconds
+    uint32_t current_time = millis();
     static uint32_t last_button_press[7] = {0};
     uint32_t debounce_time = 200;
 
@@ -34,6 +33,7 @@ void ButtonHandler::handle_button_event(ESPADFSpeaker *instance, int32_t id, int
         switch (id) {
             case 0:
                 ESP_LOGI("ButtonHandler", "Unknown Button detected");
+                //volume_down();
                 break;
             case 1:
                 ESP_LOGI("ButtonHandler", "Record button detected");
@@ -68,7 +68,8 @@ void ButtonHandler::handle_button_event(ESPADFSpeaker *instance, int32_t id, int
 }
 
 void ButtonHandler::handle_mode_button(ESPADFSpeaker *instance) {
-    if (instance->state_ != speaker::STATE_RUNNING && instance->state_ != speaker::STATE_STARTING) {
+    // Implementation of mode button handling
+    if (instance->get_state() != speaker::STATE_RUNNING && instance->get_state() != speaker::STATE_STARTING) {
         ESP_LOGI("ButtonHandler", "Mode button, speaker stopped");
         instance->play_url("http://streaming.tdiradio.com:8000/house.mp3");
     } else {
@@ -79,18 +80,15 @@ void ButtonHandler::handle_mode_button(ESPADFSpeaker *instance) {
 }
 
 void ButtonHandler::handle_play_button(ESPADFSpeaker *instance) {
-    ESP_LOGI("ButtonHandler", "Play button action");
-    // Add code to play
+    // Implementation of play button handling
 }
 
 void ButtonHandler::handle_set_button(ESPADFSpeaker *instance) {
-    ESP_LOGI("ButtonHandler", "Set button action");
-    // Add code to handle set action
+    // Implementation of set button handling
 }
 
 void ButtonHandler::handle_rec_button(ESPADFSpeaker *instance) {
-    ESP_LOGI("ButtonHandler", "Record button action");
-    // Add code to start recording
+    // Implementation of record button handling
 }
 
 void ButtonHandler::volume_up(ESPADFSpeaker *instance) {
