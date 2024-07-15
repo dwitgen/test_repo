@@ -1,12 +1,8 @@
 #ifndef ESP_ADF_BUTTON_H
 #define ESP_ADF_BUTTON_H
 
-#include "board.h"
-#include "esp_peripherals.h"
-#include "periph_adc_button.h"
-#include "input_key_service.h"
-#include "esp_log.h"
-#include "../speaker/esp_adf_speaker.h"
+#include "../esp_adf_speaker.h"
+#include <audio_hal.h>
 
 namespace esphome {
 namespace esp_adf {
@@ -21,9 +17,13 @@ class ButtonHandler {
   static void handle_rec_button(ESPADFSpeaker *instance);
   static void volume_up(ESPADFSpeaker *instance);
   static void volume_down(ESPADFSpeaker *instance);
+
+  // Volume control methods
+  static void set_volume(ESPADFSpeaker *instance, int volume);
+  static int get_current_volume(ESPADFSpeaker *instance);
 };
 
 }  // namespace esp_adf
 }  // namespace esphome
 
-#endif  // ESP_ADF_BUTTON_H
+#endif // ESP_ADF_BUTTON_H
