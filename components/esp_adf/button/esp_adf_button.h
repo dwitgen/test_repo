@@ -1,7 +1,7 @@
 #ifndef ESP_ADF_BUTTON_H
 #define ESP_ADF_BUTTON_H
 
-#include "../esp_adf_speaker.h"
+#include "../speaker/esp_adf_speaker.h"
 #include <audio_hal.h>
 
 namespace esphome {
