@@ -212,18 +212,6 @@ void ESPADFSpeaker::setup() {
     this->initialize_audio_pipeline();
 }
 
-esp_err_t ESPADFSpeaker::input_key_service_cb(periph_service_handle_t handle, periph_service_event_t *evt, void *ctx) {
-    ESPADFSpeaker *instance = static_cast<ESPADFSpeaker*>(ctx);
-    int32_t id = static_cast<int32_t>(reinterpret_cast<uintptr_t>(evt->data));
-
-    // Read the ADC value
-    int adc_value = adc1_get_raw(ADC1_CHANNEL_3);  // Replace with your ADC channel
-    ESP_LOGI(TAG, "Button event callback received: id=%d, event type=%d, ADC value=%d", id, evt->type, adc_value);
-
-    ButtonHandler::handle_button_event(instance, id, evt->type);
-    return ESP_OK;
-}
-
 void ESPADFSpeaker::play_url(const std::string &url) {
     if (this->state_ == speaker::STATE_RUNNING || this->state_ == speaker::STATE_STARTING) {
         ESP_LOGI(TAG, "Audio stream is already running, ignoring play request");
