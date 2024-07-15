@@ -2,6 +2,7 @@
 #include <driver/adc.h>
 #include <esp_log.h>
 #include <audio_hal.h>
+#include "../speaker/esp_adf_speaker.h"
 
 namespace esphome {
 namespace esp_adf {
