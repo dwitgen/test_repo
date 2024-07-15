@@ -45,6 +45,7 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
   //void volume_down();
   // Declare a method to get the current volume from the device
   int get_current_volume();
+  speaker::State get_state() const { return this->state_; }
 
   // Declare a sensor for volume level
   sensor::Sensor *volume_sensor = nullptr;
