@@ -20,7 +20,7 @@
 #include "input_key_service.h"
 #include <board.h>
 
-#include "../button/esp_adf_button.h"
+//#include "button/esp_adf_button.h"
 
 #include <esp_event.h>  
 
@@ -41,50 +41,60 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
 
   bool has_buffered_data() const override;
 
+  // Declare methods for volume control
+  void set_volume(int volume);
+  void volume_up();
+  void volume_down();
+  // Declare a method to get the current volume from the device
+  int get_current_volume();
+
+  // Declare a sensor for volume level
+  sensor::Sensor *volume_sensor = nullptr;
+
+  // Method to initialize pipeline and cleanup
+  void initialize_audio_pipeline();
+  void cleanup_audio_pipeline();
+
   // Declare methods for media/http streaming
+  static esp_err_t input_key_service_cb(periph_service_handle_t handle, periph_service_event_t *evt, void *ctx);
+  void handle_set_button();
+  void handle_play_button();
+  void handle_mode_button();
+  void handle_rec_button();
   void play_url(const std::string &url); 
   void media_play();
   void media_pause();
   void media_stop();
 
-  // Declare public getter for state
-  speaker::State get_state() const { return this->state_; }
-
-  // Getter and setter for volume
-  int get_volume() const { return this->volume_; }
-  void set_volume(int volume) { this->volume_ = volume; }
-
-  // Declare a sensor for volume level
-  sensor::Sensor *volume_sensor = nullptr;
-
- protected:
-  void start_();
-  void watch_();
+  protected:
+   void start_();
+   void watch_();
  
-  static void player_task(void *params);
-
+   static void player_task(void *params);
+   static void button_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data);
+   void handle_button_event(int32_t id, int32_t event_type);
+   
   TaskHandle_t player_task_handle_{nullptr};
   struct {
     QueueHandle_t handle;
     uint8_t *storage;
   } buffer_queue_;
   QueueHandle_t event_queue_;
-  
- private:
-  int volume_ = 50;  // Default volume level
-  bool is_http_stream_;
-  audio_pipeline_handle_t pipeline_;
-  audio_element_handle_t i2s_stream_writer_;
-  audio_element_handle_t i2s_stream_writer_http_;
-  audio_element_handle_t i2s_stream_writer_raw_;
-  audio_element_handle_t filter_;
-  audio_element_handle_t http_filter_;
-  audio_element_handle_t raw_write_;
-  audio_element_handle_t http_stream_reader_;
+  private:
+   int volume_ = 50;  // Default volume level
+   bool is_http_stream_;
+   audio_pipeline_handle_t pipeline_;
+   audio_element_handle_t i2s_stream_writer_;
+   audio_element_handle_t i2s_stream_writer_http_;
+   audio_element_handle_t i2s_stream_writer_raw_;
+   audio_element_handle_t filter_;
+   audio_element_handle_t http_filter_;
+   audio_element_handle_t raw_write_;
+   audio_element_handle_t http_stream_reader_;
+   
 };
 
 }  // namespace esp_adf
 }  // namespace esphome
 
 #endif  // USE_ESP_IDF
-
