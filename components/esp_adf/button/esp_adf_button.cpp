@@ -1,5 +1,6 @@
 #include "esp_adf_button.h"
 #include "esp_adf_speaker.h"
+#include "driver/adc.h"  // Make sure to include the correct ADC header
 
 namespace esphome {
 namespace esp_adf {
@@ -34,7 +35,7 @@ void ButtonHandler::handle_button_event(int32_t id, int32_t event_type) {
         switch (id) {
             case 0:
                 ESP_LOGI("ButtonHandler", "Unknown Button detected");
-                //volume_down();
+                // volume_down();
                 break;
             case 1:
                 ESP_LOGI("ButtonHandler", "Record button detected");
@@ -86,4 +87,3 @@ void ButtonHandler::handle_rec_button() {
 
 }  // namespace esp_adf
 }  // namespace esphome
-
