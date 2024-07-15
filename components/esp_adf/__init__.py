@@ -104,7 +104,4 @@ async def to_code(config):
             "src/esphome/components/esp_adf/media_player/media_player.h",
             "https://github.com/dwitgen/test_repo/edit/main/components/esp_adf/media_player/media_player.h",
         )
-        esp32.add_extra_build_file(
-            "src/esphome/components/esp_adf/media_player/__init__.py",
-            "https://github.com/dwitgen/test_repo/edit/main/components/esp_adf/media_player/__init__.py",
-        )
+       
