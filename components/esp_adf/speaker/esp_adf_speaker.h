@@ -21,6 +21,8 @@
 #include "input_key_service.h"
 #include <board.h>
 
+#include "../button/esp_adf_button.h"
+
 namespace esphome {
 namespace esp_adf {
 
@@ -53,10 +55,22 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
   void media_pause();
   void media_stop();
 
-  friend class ButtonHandler;
+  // Declare public getter for state
+  speaker::State get_state() const { return this->state_; }
 
+  protected:
+   void start_();
+   void watch_();
+ 
+   static void player_task(void *params);
+
+  TaskHandle_t player_task_handle_{nullptr};
+  struct {
+    QueueHandle_t handle;
+    uint8_t *storage;
+  } buffer_queue_;
+  QueueHandle_t event_queue_;
   private:
-   int volume_ = 50;  // Default volume level
    bool is_http_stream_;
    audio_pipeline_handle_t pipeline_;
    audio_element_handle_t i2s_stream_writer_;
@@ -66,6 +80,7 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
    audio_element_handle_t http_filter_;
    audio_element_handle_t raw_write_;
    audio_element_handle_t http_stream_reader_;
+   
 };
 
 }  // namespace esp_adf
@@ -73,4 +88,4 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
 
 #endif  // USE_ESP_IDF
 
-#endif // ESP_ADF_SPEAKER_H
+#endif  // ESP_ADF_SPEAKER_H
