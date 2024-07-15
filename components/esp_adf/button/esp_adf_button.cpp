@@ -1,5 +1,5 @@
 #include "esp_adf_button.h"
-#include "components/speaker/esp_adf_speaker.h"
+#include "../speaker/esp_adf_speaker.h"
 #include "driver/adc.h"  // Make sure to include the correct ADC header
 
 namespace esphome {
