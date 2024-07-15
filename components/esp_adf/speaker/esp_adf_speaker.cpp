@@ -41,7 +41,7 @@ static const char *const TAG = "esp_adf.speaker";
 #define ESP_EVENT_ANY_ID -1
 #endif
 
-void ESPADFSpeaker::set_volume(int volume) {
+/*void ESPADFSpeaker::set_volume(int volume) {
     ESP_LOGI(TAG, "Setting volume to %d", volume);
     
     if (volume < 0) volume = 0;
@@ -77,7 +77,7 @@ int ESPADFSpeaker::get_current_volume() {
     }
 
     return current_volume;
-}
+}*/
 
 void ESPADFSpeaker::initialize_audio_pipeline() {
     esp_err_t ret;
