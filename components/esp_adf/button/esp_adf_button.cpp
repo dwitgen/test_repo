@@ -71,14 +71,14 @@ void ButtonHandler::handle_button_event(ESPADFSpeaker *instance, int32_t id, int
 }
 
 void ButtonHandler::handle_mode_button(ESPADFSpeaker *instance) {
-    if (instance->get_state() != speaker::STATE_RUNNING && instance->get_state() != speaker::STATE_STARTING) {
+    /*if (instance->get_state() != speaker::STATE_RUNNING && instance->get_state() != speaker::STATE_STARTING) {
         ESP_LOGI("ButtonHandler", "Mode button, speaker stopped");
         instance->play_url("http://streaming.tdiradio.com:8000/house.mp3");
     } else {
         ESP_LOGI("ButtonHandler", "State is stopping");
         instance->cleanup_audio_pipeline();
         instance->stop();
-    }
+    }*/
 }
 
 void ButtonHandler::handle_play_button(ESPADFSpeaker *instance) {
