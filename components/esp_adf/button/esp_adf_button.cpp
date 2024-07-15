@@ -1,7 +1,6 @@
-#include "../speaker/esp_adf_speaker.h"
 #include "esp_adf_button.h"
-#include "driver/adc.h"  // Include the correct ADC header
-#include "esp_timer.h"  // Include the correct header for millis()
+#include "../speaker/esp_adf_speaker.h"
+#include "driver/adc.h"  // Make sure to include the correct ADC header
 
 namespace esphome {
 namespace esp_adf {
@@ -14,7 +13,7 @@ esp_err_t ButtonHandler::input_key_service_cb(periph_service_handle_t handle, pe
     int adc_value = adc1_get_raw(ADC1_CHANNEL_3);  // Replace with your ADC channel
     ESP_LOGI("ButtonHandler", "Button event callback received: id=%d, event type=%d, ADC value=%d", id, evt->type, adc_value);
 
-    handle_button_event(instance, id, evt->type);  // Pass the instance to the handle_button_event method
+    handle_button_event(instance, id, evt->type);
     return ESP_OK;
 }
 
@@ -36,31 +35,30 @@ void ButtonHandler::handle_button_event(ESPADFSpeaker *instance, int32_t id, int
         switch (id) {
             case 0:
                 ESP_LOGI("ButtonHandler", "Unknown Button detected");
-                // volume_down();
                 break;
             case 1:
                 ESP_LOGI("ButtonHandler", "Record button detected");
-                handle_rec_button();
+                instance->handle_rec_button();
                 break;
             case 2:
                 ESP_LOGI("ButtonHandler", "Set button detected");
-                handle_set_button();
+                instance->handle_set_button();
                 break;
             case 3:
                 ESP_LOGI("ButtonHandler", "Play button detected");
-                handle_play_button();
+                instance->handle_play_button();
                 break;
             case 4:
                 ESP_LOGI("ButtonHandler", "Mode button detected");
-                handle_mode_button();
+                instance->handle_mode_button();
                 break;
             case 5:
                 ESP_LOGI("ButtonHandler", "Volume down detected");
-                volume_down();
+                volume_down(instance);
                 break;
             case 6:
                 ESP_LOGI("ButtonHandler", "Volume up detected");
-                volume_up();
+                volume_up(instance);
                 break;
             default:
                 ESP_LOGW("ButtonHandler", "Unhandled button event id: %d", id);
@@ -84,6 +82,18 @@ void ButtonHandler::handle_set_button() {
 
 void ButtonHandler::handle_rec_button() {
     // Implementation of record button handling
+}
+
+void ButtonHandler::volume_up(ESPADFSpeaker *instance) {
+    ESP_LOGI("ButtonHandler", "Volume up button pressed");
+    int current_volume = instance->get_current_volume();
+    instance->set_volume(current_volume + 10);
+}
+
+void ButtonHandler::volume_down(ESPADFSpeaker *instance) {
+    ESP_LOGI("ButtonHandler", "Volume down button pressed");
+    int current_volume = instance->get_current_volume();
+    instance->set_volume(current_volume - 10);
 }
 
 }  // namespace esp_adf
