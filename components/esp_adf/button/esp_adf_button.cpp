@@ -1,4 +1,7 @@
 #include "esp_adf_button.h"
+#include <driver/adc.h>
+#include <esp_log.h>
+#include <audio_hal.h>
 
 namespace esphome {
 namespace esp_adf {
@@ -93,14 +96,52 @@ void ButtonHandler::handle_rec_button(ESPADFSpeaker *instance) {
 
 void ButtonHandler::volume_up(ESPADFSpeaker *instance) {
     ESP_LOGI("ButtonHandler", "Volume up button pressed");
-    int current_volume = instance->get_current_volume();
-    instance->set_volume(current_volume + 10);
+    int current_volume = get_current_volume(instance);
+    set_volume(instance, current_volume + 10);
 }
 
 void ButtonHandler::volume_down(ESPADFSpeaker *instance) {
     ESP_LOGI("ButtonHandler", "Volume down button pressed");
-    int current_volume = instance->get_current_volume();
-    instance->set_volume(current_volume - 10);
+    int current_volume = get_current_volume(instance);
+    set_volume(instance, current_volume - 10);
+}
+
+void ButtonHandler::set_volume(ESPADFSpeaker *instance, int volume) {
+    ESP_LOGI("ButtonHandler", "Setting volume to %d", volume);
+    
+    if (volume < 0) volume = 0;
+    if (volume > 100) volume = 100;
+    instance->volume_ = volume;
+
+    audio_board_handle_t board_handle = audio_board_init();
+    esp_err_t err = audio_hal_set_volume(board_handle->audio_hal, volume);
+    if (err != ESP_OK) {
+        ESP_LOGE("ButtonHandler", "Error setting volume: %s", esp_err_to_name(err));
+    }
+
+    if (instance->volume_sensor != nullptr) {
+        instance->volume_sensor->publish_state(instance->volume_);
+    } else {
+        ESP_LOGE("ButtonHandler", "Volume sensor is not initialized");
+    }
+}
+
+int ButtonHandler::get_current_volume(ESPADFSpeaker *instance) {
+    audio_board_handle_t board_handle = audio_board_init();
+    if (board_handle == nullptr) {
+        ESP_LOGE("ButtonHandler", "Failed to initialize audio board");
+        return 0;
+    }
+
+    int current_volume = 0;
+    esp_err_t read_err = audio_hal_get_volume(board_handle->audio_hal, &current_volume);
+    if (read_err == ESP_OK) {
+        ESP_LOGI("ButtonHandler", "Current device volume: %d", current_volume);
+    } else {
+        ESP_LOGE("ButtonHandler", "Error reading current volume: %s", esp_err_to_name(read_err));
+    }
+
+    return current_volume;
 }
 
 }  // namespace esp_adf
