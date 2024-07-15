@@ -14,11 +14,11 @@ esp_err_t ButtonHandler::input_key_service_cb(periph_service_handle_t handle, pe
     int adc_value = adc1_get_raw(ADC1_CHANNEL_3);  // Replace with your ADC channel
     ESP_LOGI("ButtonHandler", "Button event callback received: id=%d, event type=%d, ADC value=%d", id, evt->type, adc_value);
 
-    instance->handle_button_event(id, evt->type);
+    instance->handle_button_event(instance, id, evt->type);
     return ESP_OK;
 }
 
-void ButtonHandler::handle_button_event(int32_t id, int32_t event_type) {
+void ButtonHandler::handle_button_event(ESPADFSpeaker *instance, int32_t id, int32_t event_type) {
     ESP_LOGI("ButtonHandler", "Handle Button event received: id=%d", id);
     if (event_type != 1 && event_type != 3) { // Only process the event if the event_type is 1 click action or 3 long press action
         ESP_LOGI("ButtonHandler", "Ignoring event with type: %d", event_type);
