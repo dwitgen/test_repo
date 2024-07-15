@@ -20,7 +20,7 @@
 #include "input_key_service.h"
 #include <board.h>
 
-#include "../button/esp_adf_button.h"
+#include "button/esp_adf_button.h"
 
 #include <esp_event.h>  
 
@@ -88,4 +88,3 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
 
 #endif  // USE_ESP_IDF
 
-#endif  // ESP_ADF_SPEAKER_H
