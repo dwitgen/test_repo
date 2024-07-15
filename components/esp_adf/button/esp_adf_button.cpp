@@ -1,6 +1,7 @@
-#include "esp_adf_button.h"
 #include "../speaker/esp_adf_speaker.h"
-#include "driver/adc.h"  // Make sure to include the correct ADC header
+#include "esp_adf_button.h"
+#include "driver/adc.h"  // Include the correct ADC header
+#include "esp_timer.h"  // Include the correct header for millis()
 
 namespace esphome {
 namespace esp_adf {
@@ -23,7 +24,7 @@ void ButtonHandler::handle_button_event(int32_t id, int32_t event_type) {
         ESP_LOGI("ButtonHandler", "Ignoring event with type: %d", event_type);
         return;
     }
-    uint32_t current_time = millis();
+    uint32_t current_time = esp_timer_get_time() / 1000;  // Use esp_timer_get_time() to get the current time in milliseconds
     static uint32_t last_button_press[7] = {0};
     uint32_t debounce_time = 200;
 
