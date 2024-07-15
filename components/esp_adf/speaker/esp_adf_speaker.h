@@ -1,8 +1,9 @@
-#pragma once
-
-#ifdef USE_ESP_IDF
+#ifndef ESP_ADF_SPEAKER_H
+#define ESP_ADF_SPEAKER_H
 
 #include "../esp_adf.h"
+
+#ifdef USE_ESP_IDF
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
@@ -16,14 +17,14 @@
 #include <audio_pipeline.h>
 #include <audio_hal.h>
 #include "esp_peripherals.h"
-#include "board.h"
-
-#include "../button/esp_adf_button.h"
-
-#include <esp_event.h>
+#include "periph_adc_button.h"
+#include "input_key_service.h"
+#include <board.h>
 
 namespace esphome {
 namespace esp_adf {
+
+class ButtonHandler;
 
 class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Component {
  public:
@@ -39,14 +40,6 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
 
   bool has_buffered_data() const override;
 
-  // Declare methods for volume control
-  void set_volume(int volume);
-  //void volume_up();
-  //void volume_down();
-  // Declare a method to get the current volume from the device
-  int get_current_volume();
-  speaker::State get_state() const { return this->state_; }
-
   // Declare a sensor for volume level
   sensor::Sensor *volume_sensor = nullptr;
 
@@ -55,41 +48,29 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
   void cleanup_audio_pipeline();
 
   // Declare methods for media/http streaming
-  void play_url(const std::string &url);
+  void play_url(const std::string &url); 
   void media_play();
   void media_pause();
   void media_stop();
 
- protected:
-  void start_();
-  void watch_();
+  friend class ButtonHandler;
 
-  static void player_task(void *params);
-  // Commented out button event handler and related methods
-  // static void button_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data);
-  // void handle_button_event(int32_t id, int32_t event_type);
-
-  TaskHandle_t player_task_handle_{nullptr};
-  struct {
-    QueueHandle_t handle;
-    uint8_t *storage;
-  } buffer_queue_;
-  QueueHandle_t event_queue_;
-
- private:
-  int volume_ = 50;  // Default volume level
-  bool is_http_stream_;
-  audio_pipeline_handle_t pipeline_;
-  audio_element_handle_t i2s_stream_writer_;
-  audio_element_handle_t i2s_stream_writer_http_;
-  audio_element_handle_t i2s_stream_writer_raw_;
-  audio_element_handle_t filter_;
-  audio_element_handle_t http_filter_;
-  audio_element_handle_t raw_write_;
-  audio_element_handle_t http_stream_reader_;
+  private:
+   int volume_ = 50;  // Default volume level
+   bool is_http_stream_;
+   audio_pipeline_handle_t pipeline_;
+   audio_element_handle_t i2s_stream_writer_;
+   audio_element_handle_t i2s_stream_writer_http_;
+   audio_element_handle_t i2s_stream_writer_raw_;
+   audio_element_handle_t filter_;
+   audio_element_handle_t http_filter_;
+   audio_element_handle_t raw_write_;
+   audio_element_handle_t http_stream_reader_;
 };
 
 }  // namespace esp_adf
 }  // namespace esphome
 
 #endif  // USE_ESP_IDF
+
+#endif // ESP_ADF_SPEAKER_H
