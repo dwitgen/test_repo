@@ -25,4 +25,4 @@ class ButtonHandler {
 }  // namespace esp_adf
 }  // namespace esphome
 
-#endif// ESP_ADF_BUTTON_H
+#endif // ESP_ADF_BUTTON_H
