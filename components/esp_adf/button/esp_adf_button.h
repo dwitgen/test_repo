@@ -3,6 +3,7 @@
 
 #include "../speaker/esp_adf_speaker.h"
 #include <audio_hal.h>
+#include <chrono>
 
 namespace esphome {
 namespace esp_adf {
@@ -21,6 +22,12 @@ class ButtonHandler {
   // Volume control methods
   static void set_volume(ESPADFSpeaker *instance, int volume);
   static int get_current_volume(ESPADFSpeaker *instance);
+
+  static uint32_t get_current_time() {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(
+      std::chrono::system_clock::now().time_since_epoch()
+    ).count();
+  }
 };
 
 }  // namespace esp_adf
