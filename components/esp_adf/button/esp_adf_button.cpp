@@ -3,6 +3,8 @@
 #include "driver/adc.h"
 #include "esp_timer.h"  // Include ESP-IDF timer library
 
+#include "../speaker/esp_adf_speaker.h"
+
 namespace esphome {
 namespace esp_adf {
 
