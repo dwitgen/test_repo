@@ -1,8 +1,6 @@
 #include "esp_adf_button.h"
-#include <driver/adc.h>
-#include <esp_log.h>
-#include <audio_hal.h>
-#include <chrono>
+#include "esp_log.h"
+#include "driver/adc.h"
 
 namespace esphome {
 namespace esp_adf {
@@ -25,7 +23,7 @@ void ButtonHandler::handle_button_event(ESPADFSpeaker *instance, int32_t id, int
         ESP_LOGI("ButtonHandler", "Ignoring event with type: %d", event_type);
         return;
     }
-    uint32_t current_time = get_current_time();
+    uint32_t current_time = millis();
     static uint32_t last_button_press[7] = {0};
     uint32_t debounce_time = 200;
 
@@ -37,7 +35,6 @@ void ButtonHandler::handle_button_event(ESPADFSpeaker *instance, int32_t id, int
         switch (id) {
             case 0:
                 ESP_LOGI("ButtonHandler", "Unknown Button detected");
-                //volume_down();
                 break;
             case 1:
                 ESP_LOGI("ButtonHandler", "Record button detected");
@@ -72,7 +69,6 @@ void ButtonHandler::handle_button_event(ESPADFSpeaker *instance, int32_t id, int
 }
 
 void ButtonHandler::handle_mode_button(ESPADFSpeaker *instance) {
-    // Implementation of mode button handling
     if (instance->get_state() != speaker::STATE_RUNNING && instance->get_state() != speaker::STATE_STARTING) {
         ESP_LOGI("ButtonHandler", "Mode button, speaker stopped");
         instance->play_url("http://streaming.tdiradio.com:8000/house.mp3");
@@ -84,15 +80,18 @@ void ButtonHandler::handle_mode_button(ESPADFSpeaker *instance) {
 }
 
 void ButtonHandler::handle_play_button(ESPADFSpeaker *instance) {
-    // Implementation of play button handling
+    ESP_LOGI("ButtonHandler", "Play button action");
+    // Add code to play
 }
 
 void ButtonHandler::handle_set_button(ESPADFSpeaker *instance) {
-    // Implementation of set button handling
+    ESP_LOGI("ButtonHandler", "Set button action");
+    // Add code to handle set action
 }
 
 void ButtonHandler::handle_rec_button(ESPADFSpeaker *instance) {
-    // Implementation of record button handling
+    ESP_LOGI("ButtonHandler", "Record button action");
+    // Add code to start recording
 }
 
 void ButtonHandler::volume_up(ESPADFSpeaker *instance) {
@@ -112,7 +111,7 @@ void ButtonHandler::set_volume(ESPADFSpeaker *instance, int volume) {
     
     if (volume < 0) volume = 0;
     if (volume > 100) volume = 100;
-    instance->volume_ = volume;
+    instance->set_volume(volume);
 
     audio_board_handle_t board_handle = audio_board_init();
     esp_err_t err = audio_hal_set_volume(board_handle->audio_hal, volume);
@@ -121,7 +120,7 @@ void ButtonHandler::set_volume(ESPADFSpeaker *instance, int volume) {
     }
 
     if (instance->volume_sensor != nullptr) {
-        instance->volume_sensor->publish_state(instance->volume_);
+        instance->volume_sensor->publish_state(instance->get_volume());
     } else {
         ESP_LOGE("ButtonHandler", "Volume sensor is not initialized");
     }
