@@ -96,12 +96,14 @@ async def to_code(config):
             "esp_adf_patches/idf_v4.4_freertos.patch",
             "https://github.com/espressif/esp-adf/raw/v2.5/idf_patches/idf_v4.4_freertos.patch",
         )
-        esp32.add_extra_build_file(
-            "src/esphome/components/esp_adf/media_player/media_player.cpp",
-            "https://github.com/dwitgen/test_repo/edit/main/components/esp_adf/media_player/media_player.cpp",
-        )
-        esp32.add_extra_build_file(
-            "src/esphome/components/esp_adf/media_player/media_player.h",
-            "https://github.com/dwitgen/test_repo/edit/main/components/esp_adf/media_player/media_player.h",
-        )
+        # Use raw URLs to download the actual file content
+    esp32.add_extra_build_file(
+        "src/esphome/components/esp_adf/button/esp_adf_button.cpp",
+        "https://raw.githubusercontent.com/dwitgen/test_repo/main/components/esp_adf/button/esp_adf_button.cpp",
+    )
+    esp32.add_extra_build_file(
+        "src/esphome/components/esp_adf/button/esp_adf_button.h",
+        "https://raw.githubusercontent.com/dwitgen/test_repo/main/components/esp_adf/button/esp_adf_button.h",
+    )
+
        
