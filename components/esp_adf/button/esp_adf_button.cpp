@@ -2,7 +2,7 @@
 #include <driver/adc.h>
 #include <esp_log.h>
 #include <audio_hal.h>
-#include "../speaker/esp_adf_speaker.h"
+#include <chrono>
 
 namespace esphome {
 namespace esp_adf {
@@ -25,7 +25,7 @@ void ButtonHandler::handle_button_event(ESPADFSpeaker *instance, int32_t id, int
         ESP_LOGI("ButtonHandler", "Ignoring event with type: %d", event_type);
         return;
     }
-    uint32_t current_time = millis();
+    uint32_t current_time = get_current_time();
     static uint32_t last_button_press[7] = {0};
     uint32_t debounce_time = 200;
 
