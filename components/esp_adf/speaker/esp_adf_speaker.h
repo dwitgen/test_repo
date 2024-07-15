@@ -20,7 +20,7 @@
 
 #include "../button/esp_adf_button.h"
 
-#include <esp_event.h>  
+#include <esp_event.h>
 
 namespace esphome {
 namespace esp_adf {
@@ -54,25 +54,19 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
   void cleanup_audio_pipeline();
 
   // Declare methods for media/http streaming
-  static esp_err_t input_key_service_cb(periph_service_handle_t handle, periph_service_event_t *evt, void *ctx);
-  void handle_set_button();
-  void handle_play_button();
-  void handle_mode_button();
-  void handle_rec_button();
-  void play_url(const std::string &url); 
+  void play_url(const std::string &url);
   void media_play();
   void media_pause();
   void media_stop();
-
-  // Declare the handle_button_event method
-  void handle_button_event(int32_t id, int32_t event_type);
 
  protected:
   void start_();
   void watch_();
 
   static void player_task(void *params);
-  static void button_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data);
+  // Commented out button event handler and related methods
+  // static void button_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data);
+  // void handle_button_event(int32_t id, int32_t event_type);
 
   TaskHandle_t player_task_handle_{nullptr};
   struct {
