@@ -63,6 +63,7 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
   void media_play();
   void media_pause();
   void media_stop();
+
   // Declare the handle_button_event method
   void handle_button_event(int32_t id, int32_t event_type);
 
