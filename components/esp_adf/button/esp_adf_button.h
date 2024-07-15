@@ -2,8 +2,6 @@
 #define ESP_ADF_BUTTON_H
 
 #include "../speaker/esp_adf_speaker.h"
-#include <audio_hal.h>
-#include <chrono>
 
 namespace esphome {
 namespace esp_adf {
@@ -18,19 +16,11 @@ class ButtonHandler {
   static void handle_rec_button(ESPADFSpeaker *instance);
   static void volume_up(ESPADFSpeaker *instance);
   static void volume_down(ESPADFSpeaker *instance);
-
-  // Volume control methods
   static void set_volume(ESPADFSpeaker *instance, int volume);
   static int get_current_volume(ESPADFSpeaker *instance);
-
-  static uint32_t get_current_time() {
-    return std::chrono::duration_cast<std::chrono::milliseconds>(
-      std::chrono::system_clock::now().time_since_epoch()
-    ).count();
-  }
 };
 
 }  // namespace esp_adf
 }  // namespace esphome
 
-#endif // ESP_ADF_BUTTON_H
+#endif  // ESP_ADF_BUTTON_H
