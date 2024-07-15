@@ -1,6 +1,7 @@
 #include "esp_adf_button.h"
 #include "esp_log.h"
 #include "driver/adc.h"
+#include "esp_timer.h"  // Include ESP-IDF timer library
 
 namespace esphome {
 namespace esp_adf {
@@ -23,7 +24,8 @@ void ButtonHandler::handle_button_event(ESPADFSpeaker *instance, int32_t id, int
         ESP_LOGI("ButtonHandler", "Ignoring event with type: %d", event_type);
         return;
     }
-    uint32_t current_time = millis();
+    uint64_t current_time_us = esp_timer_get_time();  // Get current time in microseconds
+    uint32_t current_time_ms = current_time_us / 1000;  // Convert to milliseconds
     static uint32_t last_button_press[7] = {0};
     uint32_t debounce_time = 200;
 
@@ -31,7 +33,7 @@ void ButtonHandler::handle_button_event(ESPADFSpeaker *instance, int32_t id, int
         debounce_time = 500;
     }
 
-    if (current_time - last_button_press[id] > debounce_time) {
+    if (current_time_ms - last_button_press[id] > debounce_time) {
         switch (id) {
             case 0:
                 ESP_LOGI("ButtonHandler", "Unknown Button detected");
@@ -64,7 +66,7 @@ void ButtonHandler::handle_button_event(ESPADFSpeaker *instance, int32_t id, int
                 ESP_LOGW("ButtonHandler", "Unhandled button event id: %d", id);
                 break;
         }
-        last_button_press[id] = current_time;
+        last_button_press[id] = current_time_ms;
     }
 }
 
