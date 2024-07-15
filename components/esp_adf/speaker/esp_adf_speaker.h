@@ -41,8 +41,8 @@ class ESPADFSpeaker : public ESPADFPipeline, public speaker::Speaker, public Com
 
   // Declare methods for volume control
   void set_volume(int volume);
-  void volume_up();
-  void volume_down();
+  //void volume_up();
+  //void volume_down();
   // Declare a method to get the current volume from the device
   int get_current_volume();
 
