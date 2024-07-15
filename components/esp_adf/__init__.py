@@ -105,6 +105,6 @@ async def to_code(config):
             "https://github.com/dwitgen/test_repo/edit/main/components/esp_adf/button/esp_adf_button.h",
         )
         esp32.add_extra_build_file(
-            "src/esphome/components/esp_adf/media_player",
+            "src/esphome/components/esp_adf/button/__init__.py",
             "https://github.com/dwitgen/test_repo/edit/main/components/esp_adf/button/__init__.py",
         )
