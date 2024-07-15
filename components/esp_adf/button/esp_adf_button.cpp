@@ -56,11 +56,11 @@ void ButtonHandler::handle_button_event(ESPADFSpeaker *instance, int32_t id, int
                 break;
             case 5:
                 ESP_LOGI("ButtonHandler", "Volume down detected");
-                instance->volume_down();
+                volume_down();
                 break;
             case 6:
                 ESP_LOGI("ButtonHandler", "Volume up detected");
-                instance->volume_up();
+                volume_up();
                 break;
             default:
                 ESP_LOGW("ButtonHandler", "Unhandled button event id: %d", id);
