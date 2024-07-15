@@ -14,7 +14,7 @@ esp_err_t ButtonHandler::input_key_service_cb(periph_service_handle_t handle, pe
     int adc_value = adc1_get_raw(ADC1_CHANNEL_3);  // Replace with your ADC channel
     ESP_LOGI("ButtonHandler", "Button event callback received: id=%d, event type=%d, ADC value=%d", id, evt->type, adc_value);
 
-    instance->handle_button_event(instance, id, evt->type);
+    handle_button_event(instance, id, evt->type);  // Pass the instance to the handle_button_event method
     return ESP_OK;
 }
 
