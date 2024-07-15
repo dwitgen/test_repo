@@ -1,17 +1,15 @@
 #ifndef ESP_ADF_BUTTON_H
 #define ESP_ADF_BUTTON_H
 
-#include "../speaker/esp_adf_speaker.h"
 #include "board.h"
 #include "esp_peripherals.h"
 #include "periph_adc_button.h"
 #include "input_key_service.h"
 #include "esp_log.h"
+#include "../speaker/esp_adf_speaker.h"
 
 namespace esphome {
 namespace esp_adf {
-
-class ESPADFSpeaker;  // Forward declaration
 
 class ButtonHandler {
  public:
@@ -21,9 +19,11 @@ class ButtonHandler {
   static void handle_play_button();
   static void handle_set_button();
   static void handle_rec_button();
+  static void volume_up(ESPADFSpeaker *instance);
+  static void volume_down(ESPADFSpeaker *instance);
 };
 
 }  // namespace esp_adf
 }  // namespace esphome
 
-#endif // ESP_ADF_BUTTON_H
+#endif  // ESP_ADF_BUTTON_H
